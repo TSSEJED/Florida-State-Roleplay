@@ -68,9 +68,17 @@
             const error = params.get('error');
             const errorDesc = params.get('error_description');
             
-            const redirectTo = localStorage.getItem('redirectAfterLogin') || 'index.html';
+            // Get and validate redirect path
+            let redirectPath = localStorage.getItem('redirectAfterLogin') || '/index';
             const isAdminFlow = localStorage.getItem('isAdminFlow') === 'true';
             const baseUrl = window.location.origin + '/training-request';
+            
+            // Ensure redirectPath is valid
+            if (!['/index', '/admin'].includes(redirectPath)) {
+                redirectPath = '/index';
+            }
+            
+            console.log('Redirect path:', redirectPath);
 
             // Handle OAuth errors
             if (error) {
@@ -149,14 +157,18 @@
                 // Clear the redirect from localStorage
                 localStorage.removeItem('redirectAfterLogin');
                 
-                // Redirect based on user role and requested page
+                // Determine final redirect URL
+                let finalUrl;
                 if (isAdmin && (redirectPath === '/admin' || isAdminFlow)) {
                     console.log('Admin user, redirecting to admin dashboard');
-                    window.location.href = `${baseUrl}/admin`;
+                    finalUrl = `${baseUrl}/admin`;
                 } else {
-                    console.log('Redirecting to:', redirectPath);
-                    window.location.href = `${baseUrl}${redirectPath}`.replace('//', '/');
+                    console.log('Regular user, redirecting to:', redirectPath);
+                    finalUrl = `${baseUrl}${redirectPath}`.replace(/([^:]\/)\/+$/, '$1');
                 }
+                
+                console.log('Final redirect URL:', finalUrl);
+                window.location.href = finalUrl;
 
             } catch (err) {
                 console.error('Authentication error:', err);
