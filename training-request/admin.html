@@ -358,13 +358,14 @@
         </div>
 
         <div id="applicationsList">
-        <!-- Applications will be dynamically inserted here -->
-        <div class="empty-state">
-            <i class="fas fa-inbox"></i>
-            <h3>No applications found</h3>
-            <p>Submitted training applications will appear here.</p>
+            <!-- Applications will be dynamically inserted here -->
+            <div class="empty-state">
+                <i class="fas fa-inbox"></i>
+                <h3>No applications found</h3>
+                <p>Submitted training applications will appear here.</p>
+            </div>
         </div>
-    </div>
+    </div> <!-- Close admin-container -->
     
     <!-- Application Details Modal -->
     <div id="applicationModal" class="modal">
@@ -378,7 +379,6 @@
     <div id="notification" class="notification">
         <i class="fas fa-check-circle"></i>
         <span id="notificationMessage">Notification message</span>
-    </div>
     </div>
 
     <script>
@@ -629,17 +629,32 @@
         
         // Render applications list with compact cards
         function renderApplications() {
+            console.log('renderApplications called');
             try {
+                console.log('Loading applications...');
                 const applications = loadApplications();
-                const applicationsList = document.getElementById('applicationsList');
+                console.log('Loaded applications:', applications);
+                
+                let applicationsList = document.getElementById('applicationsList');
+                console.log('Applications list element:', applicationsList);
                 
                 // Check if applicationsList element exists
                 if (!applicationsList) {
                     console.error('Applications list container not found');
-                    return;
+                    // Try to find the element again with a different selector
+                    const container = document.querySelector('.admin-container #applicationsList') || 
+                                    document.querySelector('#applicationsList');
+                    if (container) {
+                        console.log('Found applications list using alternative selector');
+                        applicationsList = container;
+                    } else {
+                        console.error('Could not find applications list container with any selector');
+                        return;
+                    }
                 }
                 
                 if (!applications || applications.length === 0) {
+                    console.log('No applications found, showing empty state');
                     applicationsList.innerHTML = `
                         <div class="empty-state">
                             <i class="fas fa-inbox"></i>
@@ -946,8 +961,18 @@
             }
         }
         
+        // Debug function to check if elements exist
+        function checkElements() {
+            console.log('Checking elements...');
+            console.log('applicationsList:', document.getElementById('applicationsList'));
+            console.log('username:', document.getElementById('username'));
+        }
+
         // Initialize the admin dashboard
         document.addEventListener('DOMContentLoaded', () => {
+            console.log('DOM fully loaded');
+            checkElements();
+            
             // Update username in the greeting if element exists
             const usernameElement = document.getElementById('username');
             if (usernameElement) {
