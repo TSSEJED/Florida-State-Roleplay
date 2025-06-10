@@ -188,9 +188,11 @@
                 }
                 
                 try {
-                    // Store user data in session storage
+                    // Store user data and login timestamp in session storage
+                    const loginTime = new Date().getTime();
                     sessionStorage.setItem('userAuthenticated', 'true');
                     sessionStorage.setItem('userData', JSON.stringify(userData));
+                    sessionStorage.setItem('loginTime', loginTime.toString());
                     
                     // Get the redirect URL from localStorage or use default
                     let redirectUrl = localStorage.getItem('redirectAfterLogin');

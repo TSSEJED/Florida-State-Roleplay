@@ -259,9 +259,17 @@
                 initiateDiscordLogin();
             });
 
-            // Check for error messages in URL
+            // Check for error messages in session storage or URL
             const urlParams = new URLSearchParams(window.location.search);
-            const error = urlParams.get('error');
+            let error = urlParams.get('error');
+            
+            // Check session storage for error messages first
+            const sessionError = sessionStorage.getItem('loginError');
+            if (sessionError) {
+                error = sessionError;
+                sessionStorage.removeItem('loginError'); // Clear after reading
+            }
+            
             if (error) {
                 showError(decodeURIComponent(error));
             }

@@ -4,32 +4,52 @@
     <!-- Include session manager -->
     <script src="js/session.js"></script>
     <script>
-        // Simple auth check for index page
+        // Auth check with session timeout
         document.addEventListener('DOMContentLoaded', () => {
-            const isAuthenticated = sessionStorage.getItem('userAuthenticated');
+            // Skip auth check if we're on login or callback pages
+            if (window.location.pathname.includes('login') || 
+                window.location.pathname.includes('callback')) {
+                return;
+            }
+
+            // Check if user is authenticated
+            const isAuthenticated = sessionStorage.getItem('userAuthenticated') === 'true';
             const userData = sessionStorage.getItem('userData');
+            const loginTime = parseInt(sessionStorage.getItem('loginTime') || '0');
+            const currentTime = new Date().getTime();
+            const sessionTimeout = 4 * 60 * 60 * 1000; // 4 hours in milliseconds
+
+            // Check if session is valid
+            const isSessionValid = isAuthenticated && 
+                                 userData && 
+                                 (currentTime - loginTime) < sessionTimeout;
+
+            if (!isSessionValid) {
+                // Clear session data
+                sessionStorage.removeItem('userAuthenticated');
+                sessionStorage.removeItem('userData');
+                sessionStorage.removeItem('loginTime');
+                
+                // Redirect to login with error
+                sessionStorage.setItem('loginError', 'Your session has expired. Please log in again.');
+                window.location.href = 'login.html';
+                return;
+            }
             
-            // Only redirect if not on login/callback pages
-            if (!window.location.pathname.includes('login') && 
-                !window.location.pathname.includes('callback')) {
-                
-                // If not authenticated, go to login
-                if (!isAuthenticated || !userData) {
-                    sessionStorage.setItem('loginError', 'Please log in to access this page');
-                    window.location.href = 'login.html';
-                    return;
+            // Update UI with user info
+            try {
+                const user = JSON.parse(userData);
+                const userInfoElement = document.getElementById('user-info');
+                if (userInfoElement) {
+                    userInfoElement.textContent = `Welcome, ${user.username}`;
                 }
-                
-                // Update UI if user is logged in
-                try {
-                    const user = JSON.parse(userData);
-                    const userInfoElement = document.getElementById('user-info');
-                    if (userInfoElement) {
-                        userInfoElement.textContent = `Welcome, ${user.username}`;
-                    }
-                } catch (e) {
-                    console.error('Error parsing user data:', e);
-                }
+            } catch (e) {
+                console.error('Error parsing user data:', e);
+                // If we can't parse user data, force logout
+                sessionStorage.removeItem('userAuthenticated');
+                sessionStorage.removeItem('userData');
+                sessionStorage.removeItem('loginTime');
+                window.location.href = 'login.html';
             }
         });
     </script>
