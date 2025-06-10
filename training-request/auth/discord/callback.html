@@ -78,51 +78,46 @@
             console.log('Callback page loaded');
             console.log('URL hash:', window.location.hash);
             console.log('URL search:', window.location.search);
-            // Get the token from the URL hash
-            const hash = window.location.hash.substring(1);
-            const params = new URLSearchParams(hash);
-            
-            const accessToken = params.get('access_token');
-            const tokenType = params.get('token_type');
-            const expiresIn = params.get('expires_in');
-            const state = params.get('state');
-            const error = params.get('error');
-            const errorDesc = params.get('error_description');
-            
-            // Get and validate redirect path
-            let redirectPath = localStorage.getItem('redirectAfterLogin');
-            console.log('Initial redirectPath from localStorage:', redirectPath);
-            
-            if (!redirectPath || !['/index', '/admin'].includes(redirectPath)) {
-                console.log('Using default redirect path /index');
-                redirectPath = '/index';
-            }
-            const isAdminFlow = localStorage.getItem('isAdminFlow') === 'true';
-            const baseUrl = 'https://florida-state-roleplay.pages.dev';
-            
-            // Ensure redirectPath is valid
-            if (!['/index', '/admin'].includes(redirectPath)) {
-                redirectPath = '/index';
-            }
-            
-            console.log('Redirect path:', redirectPath);
-
-            // Handle OAuth errors
-            if (error) {
-                const errorMsg = `Discord OAuth Error: ${error} - ${errorDesc || 'No description'}`;
-                console.error(errorMsg);
-                showError(errorMsg);
-                return;
-            }
-
-            if (!accessToken) {
-                const errorMsg = 'No access token received from Discord. Make sure you authorized the application.';
-                console.error(errorMsg);
-                showError(errorMsg);
-                return;
-            }
-            
-            console.log('Access token received, type:', tokenType);
+            // Handle the OAuth2 implicit flow
+            async function handleAuth() {
+                try {
+                    // Get the access token from the URL hash
+                    const hash = window.location.hash.substring(1);
+                    const params = new URLSearchParams(hash);
+                    const accessToken = params.get('access_token');
+                    
+                    if (!accessToken) {
+                        throw new Error('No access token found in the URL hash');
+                    }
+                    
+                    console.log('Access token received, fetching user data...');
+                    
+                    // Store the access token
+                    sessionStorage.setItem('discord_token', accessToken);
+                    
+                    // Fetch user data from Discord
+                    const [userResponse, guildsResponse] = await Promise.all([
+                        fetch('https://discord.com/api/users/@me', {
+                            headers: {
+                                'Authorization': `Bearer ${accessToken}`
+                            }
+                        }),
+                        fetch('https://discord.com/api/users/@me/guilds', {
+                            headers: {
+                                'Authorization': `Bearer ${accessToken}`
+                            }
+                        })
+                    ]);
+                    
+                    if (!userResponse.ok || !guildsResponse.ok) {
+                        throw new Error('Failed to fetch user data from Discord');
+                    }
+                    
+                    const userData = await userResponse.json();
+                    const guilds = await guildsResponse.json();
+                    
+                    // Store user data in session storage
+                    sessionStorage.setItem('userData', JSON.stringify(userData));
             
             try {
                 // Store the access token

@@ -150,8 +150,15 @@
                     console.log('Current URL:', window.location.href);
                     console.log('Session Storage:', JSON.stringify(sessionStorage, null, 2));
                     
-                    // Build the Discord OAuth2 URL
-                    const authUrl = `https://discord.com/api/oauth2/authorize?client_id=${DISCORD_CLIENT_ID}&redirect_uri=${encodeURIComponent(DISCORD_REDIRECT_URI)}&response_type=token&scope=${encodeURIComponent(DISCORD_SCOPE)}`;
+                    // Build the Discord OAuth2 URL with implicit grant flow
+                    const params = new URLSearchParams({
+                        client_id: DISCORD_CLIENT_ID,
+                        redirect_uri: DISCORD_REDIRECT_URI,
+                        response_type: RESPONSE_TYPE,
+                        scope: DISCORD_SCOPE
+                    });
+                    
+                    const authUrl = `https://discord.com/oauth2/authorize?${params.toString()}`;
                     
                     console.log('Redirecting to Discord OAuth2:', authUrl);
                     window.location.href = authUrl;
