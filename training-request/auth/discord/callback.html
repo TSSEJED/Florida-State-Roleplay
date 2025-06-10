@@ -192,13 +192,27 @@
                     sessionStorage.setItem('userData', JSON.stringify(userData));
                     
                     // Get the redirect URL from session storage (set by login page)
-                    const redirectAfterLogin = sessionStorage.getItem('redirectAfterLogin');
+                    let redirectAfterLogin = sessionStorage.getItem('redirectAfterLogin');
                     
                     // Clear the redirect from session storage
                     sessionStorage.removeItem('redirectAfterLogin');
                     
-                    // Redirect to the intended page or default to index.html
-                    const redirectUrl = redirectAfterLogin || '../index.html';
+                    // If no specific redirect, use the stored path from localStorage
+                    if (!redirectAfterLogin) {
+                        redirectAfterLogin = localStorage.getItem('redirectAfterLogin') || '/index';
+                        localStorage.removeItem('redirectAfterLogin');
+                    }
+                    
+                    // Ensure the redirect URL is valid
+                    if (!redirectAfterLogin.startsWith('/')) {
+                        redirectAfterLogin = '/' + redirectAfterLogin;
+                    }
+                    
+                    // Build the full redirect URL
+                    const baseUrl = 'https://florida-state-roleplay.pages.dev';
+                    let redirectUrl = baseUrl + redirectAfterLogin + (redirectAfterLogin.endsWith('.html') ? '' : '.html');
+                    
+                    console.log('Redirecting to:', redirectUrl);
                     console.log('Redirecting to:', redirectUrl);
                     window.location.href = redirectUrl;
                 } catch (redirectError) {

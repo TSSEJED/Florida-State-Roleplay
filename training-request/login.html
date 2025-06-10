@@ -140,8 +140,10 @@
             if (loginBtn) {
                 loginBtn.addEventListener('click', () => {
                     // Store the current page as the return URL
-                    const returnUrl = window.location.href.includes('admin.html') ? 'admin.html' : 'index.html';
+                    const returnUrl = window.location.href.includes('admin.html') ? '/admin' : '/index';
+                    // Store in both sessionStorage and localStorage for reliability
                     sessionStorage.setItem('redirectAfterLogin', returnUrl);
+                    localStorage.setItem('redirectAfterLogin', returnUrl);
                     
                     // Redirect to Discord OAuth2
                     const authUrl = `https://discord.com/api/oauth2/authorize?client_id=${DISCORD_CLIENT_ID}&redirect_uri=${encodeURIComponent(DISCORD_REDIRECT_URI)}&response_type=token&scope=${encodeURIComponent(DISCORD_SCOPE)}`;
