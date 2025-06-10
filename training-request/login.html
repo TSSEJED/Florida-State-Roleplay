@@ -98,6 +98,12 @@
         <a href="#" id="discordLoginBtn" class="btn">
             <i class="fab fa-discord"></i> Login with Discord
         </a>
+        <div id="logoutSection" style="margin-top: 15px; display: none;">
+            <p>You are already logged in.</p>
+            <button id="logoutBtn" class="btn" style="background: #e74c3c; margin-top: 10px;">
+                <i class="fas fa-sign-out-alt"></i> Logout
+            </button>
+        </div>
     </div>
     <script>
         // Discord OAuth2 Configuration
@@ -108,16 +114,25 @@
         // Initialize the login page
         document.addEventListener('DOMContentLoaded', () => {
             const loginBtn = document.getElementById('discordLoginBtn');
+            const logoutBtn = document.getElementById('logoutBtn');
+            const logoutSection = document.getElementById('logoutSection');
             
-            // Check if we have a redirect URL in session storage
-            const redirectAfterLogin = sessionStorage.getItem('redirectAfterLogin');
-            
-            // If user is already logged in, redirect them
+            // Check if user is already logged in
             const userData = sessionStorage.getItem('userData');
             if (userData) {
-                redirectAfterLogin ? 
-                    window.location.href = redirectAfterLogin : 
-                    window.location.href = 'index.html';
+                // Show logout section and hide login button
+                if (loginBtn) loginBtn.style.display = 'none';
+                if (logoutSection) logoutSection.style.display = 'block';
+                
+                // Handle logout
+                if (logoutBtn) {
+                    logoutBtn.addEventListener('click', (e) => {
+                        e.preventDefault();
+                        sessionStorage.removeItem('userData');
+                        sessionStorage.removeItem('redirectAfterLogin');
+                        window.location.reload();
+                    });
+                }
                 return;
             }
 
