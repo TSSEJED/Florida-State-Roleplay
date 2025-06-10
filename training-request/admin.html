@@ -4,9 +4,8 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Training Applications - Admin Dashboard</title>
-    <!-- Load Font Awesome first -->
-    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet" />
     <link rel="stylesheet" href="styles.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
     <style>
         /* Notification Styles */
         .notification {
@@ -137,7 +136,20 @@
         
         .application-actions {
             display: flex;
-            gap: 0.5rem;
+            flex-direction: column;
+            gap: 10px;
+            margin-top: 15px;
+        }
+        
+        .moderator-input {
+            margin-bottom: 5px;
+        }
+        
+        .moderator-input input {
+            width: 100%;
+            padding: 5px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
         }
 
         .application-body {
@@ -312,63 +324,46 @@
     </style>
 </head>
 <body>
-    <!-- Moderator Name Modal -->
-    <div id="moderatorModal" class="modal" style="display: none;">
-        <div class="modal-content" style="max-width: 500px; padding: 30px; text-align: center;">
-            <h2 style="margin-bottom: 20px; color: #2c3e50;">Moderator Access</h2>
-            <p style="margin-bottom: 25px; color: #555;">Please enter your name to continue as a moderator. This will be used to track your actions.</p>
-            <input type="text" id="moderatorName" placeholder="Your name" style="width: 100%; padding: 12px; margin-bottom: 20px; border: 2px solid #ddd; border-radius: 6px; font-size: 16px;">
-            <button id="saveModerator" class="btn btn-primary" style="width: 100%; padding: 12px; font-size: 16px; background: #4a6fa5; color: white; border: none; border-radius: 6px; cursor: pointer;">
-                Continue
-            </button>
-        </div>
+    <!-- Navigation Bar -->
+    <div style="background: #2c3e50; color: white; padding: 0.5rem 2rem; display: flex; justify-content: flex-end; align-items: center; font-size: 0.9rem;">
+        <a href="index.html" style="color: white; text-decoration: none; margin-right: 1rem;">
+            <i class="fas fa-home"></i> Home
+        </a>
     </div>
-
     <div class="admin-container">
         <div class="admin-header">
-            <div style="display: flex; justify-content: space-between; align-items: center; width: 100%;">
-                <h1>Training Applications</h1>
-                <div id="moderatorDisplay" style="display: none; background: #f0f2f5; padding: 8px 16px; border-radius: 20px; font-size: 14px; color: #4a6fa5; font-weight: 500;">
-                    <i class="fas fa-user-shield"></i> <span id="moderatorNameDisplay"></span>
+            <h1>Training Applications</h1>
+            <div class="filters">
+                <div class="filter-group">
+                    <label for="statusFilter">Status</label>
+                    <select id="statusFilter">
+                        <option value="all">All Applications</option>
+                        <option value="pending">Pending</option>
+                        <option value="approved">Approved</option>
+                        <option value="denied">Denied</option>
+                    </select>
                 </div>
-            </div>
-            <div class="admin-controls">
-                <div class="filters">
-                    <div class="filter-group">
-                        <label for="statusFilter">Status:</label>
-                        <select id="statusFilter">
-                            <option value="all">All Applications</option>
-                            <option value="pending">Pending</option>
-                            <option value="approved">Approved</option>
-                            <option value="denied">Denied</option>
-                        </select>
-                    </div>
-                    <div class="filter-group">
-                        <label for="searchInput">Search:</label>
-                        <input type="text" id="searchInput" placeholder="Search applications...">
-                    </div>
+                <div class="filter-group">
+                    <label for="searchInput">Search</label>
+                    <input type="text" id="searchInput" placeholder="Search applications...">
                 </div>
-                <button id="homeBtn" class="btn btn-secondary">
-                    <i class="fas fa-home"></i> Home
-                </button>
             </div>
         </div>
 
-        <!-- Applications List -->
-        <div id="applicationsList" class="applications-grid">
-            <!-- Applications will be loaded here -->
+        <div id="applicationsList">
+        <!-- Applications will be dynamically inserted here -->
+        <div class="empty-state">
+            <i class="fas fa-inbox"></i>
+            <h3>No applications found</h3>
+            <p>Submitted training applications will appear here.</p>
         </div>
     </div>
     
-
-
     <!-- Application Details Modal -->
     <div id="applicationModal" class="modal">
         <div class="modal-content">
-            <span class="close-modal">&times;</span>
-            <div id="applicationDetails">
-                <!-- Application details will be loaded here -->
-            </div>
+            <button class="close-modal">&times;</button>
+            <div id="modalContent"></div>
         </div>
     </div>
     
@@ -377,7 +372,7 @@
         <i class="fas fa-check-circle"></i>
         <span id="notificationMessage">Notification message</span>
     </div>
-
+    </div>
 
     <script>
         // Discord Webhook URLs
@@ -483,84 +478,13 @@
             }
         }
 
-        // Store moderator name in session storage
-        let currentModerator = sessionStorage.getItem('moderatorName');
-        
-        // Show moderator name in the UI
-        function updateModeratorUI() {
-            const moderatorDisplay = document.getElementById('moderatorNameDisplay');
-            if (moderatorDisplay && currentModerator) {
-                moderatorDisplay.textContent = currentModerator;
-                document.getElementById('moderatorDisplay').style.display = 'flex';
-            }
-        }
-        
-        // Check and prompt for moderator name
-        function checkModerator() {
-            if (!currentModerator) {
-                const modal = document.getElementById('moderatorModal');
-                const nameInput = document.getElementById('moderatorName');
-                const saveBtn = document.getElementById('saveModerator');
-                
-                modal.style.display = 'flex';
-                
-                saveBtn.onclick = function() {
-                    const name = nameInput.value.trim();
-                    if (name) {
-                        currentModerator = name;
-                        sessionStorage.setItem('moderatorName', name);
-                        modal.style.display = 'none';
-                        updateModeratorUI();
-                        showNotification(`Welcome, ${name}!`);
-                    } else {
-                        alert('Please enter your name to continue.');
-                    }
-                };
-                
-                // Handle Enter key
-                nameInput.addEventListener('keypress', function(e) {
-                    if (e.key === 'Enter') {
-                        saveBtn.click();
-                    }
-                });
-            } else {
-                updateModeratorUI();
-            }
-        }
-        
-        // Get current moderator name for logging
-        function getCurrentModerator() {
-            return currentModerator || 'Unknown Moderator';
-        }
-        
-        // Add moderator to application history
-        function addModeratorAction(application, action) {
-            if (!application.history) application.history = [];
-            const moderator = getCurrentModerator();
-            application.history.push({
-                action: action,
-                moderator: moderator,
-                timestamp: new Date().toISOString()
-            });
-            return application;
-        }
-        
         // Admin role ID - Replace with your actual Discord role ID
         const ADMIN_ROLE_ID = '1377651835715846214'; // Your admin role ID
 
 
-        // Initialize the application when DOM is ready
+        // Initialize admin dashboard
         document.addEventListener('DOMContentLoaded', () => {
-            // Initialize the dashboard
-            initializeDashboard();
-            
-            // Check moderator status
-            checkModerator();
-            
-            // Set up the home button
-            setupHomeButton();
-            
-            // Load applications
+            // Load and render applications
             if (typeof renderApplications === 'function') {
                 renderApplications();
             }
@@ -638,98 +562,63 @@
         
         // Render applications list with compact cards
         function renderApplications() {
-            console.log('renderApplications called');
-            try {
-                console.log('Loading applications...');
-                const applications = loadApplications();
-                console.log('Loaded applications:', applications);
-                
-                let applicationsList = document.getElementById('applicationsList');
-                console.log('Applications list element:', applicationsList);
-                
-                // Check if applicationsList element exists
-                if (!applicationsList) {
-                    console.error('Applications list container not found');
-                    // Try to find the element again with a different selector
-                    const container = document.querySelector('.admin-container #applicationsList') || 
-                                    document.querySelector('#applicationsList');
-                    if (container) {
-                        console.log('Found applications list using alternative selector');
-                        applicationsList = container;
-                    } else {
-                        console.error('Could not find applications list container with any selector');
-                        return;
-                    }
-                }
-                
-                if (!applications || applications.length === 0) {
-                    console.log('No applications found, showing empty state');
-                    applicationsList.innerHTML = `
-                        <div class="empty-state">
-                            <i class="fas fa-inbox"></i>
-                            <h3>No applications found</h3>
-                            <p>No applications match your current filters.</p>
-                        </div>
-                    `;
-                    return;
-                }
-                
-                applicationsList.innerHTML = applications.map(application => {
-                    const statusClass = `status-${application.status || 'pending'}`;
-                    const formattedDate = new Date(application.timestamp).toLocaleString('en-US', {
-                        year: 'numeric',
-                        month: 'short',
-                        day: 'numeric',
-                        hour: '2-digit',
-                        minute: '2-digit'
-                    });
-                    
-                    return `
-                        <div class="application-card" data-id="${application.id}">
-                            <div class="application-header">
-                                <div class="applicant-info">
-                                    <div class="applicant-name">${application.applicantName || 'Unnamed Applicant'}</div>
-                                    <div class="applicant-discord">
-                                        <i class="fab fa-discord"></i>
-                                        ${application.discordUsername || 'No Discord ID'}
-                                    </div>
-                                </div>
-                                <div class="application-actions">
-                                    <button class="btn btn-view" onclick="showApplicationDetails('${application.id}')">
-                                        <i class="fas fa-eye"></i> View
-                                    </button>
-                                    ${application.status === 'pending' ? `
-                                        <button class="btn btn-approve" onclick="event.stopPropagation(); updateApplicationStatus('${application.id}', 'approved')">
-                                            <i class="fas fa-check"></i> Approve
-                                        </button>
-                                        <button class="btn btn-deny" onclick="event.stopPropagation(); updateApplicationStatus('${application.id}', 'denied')">
-                                            <i class="fas fa-times"></i> Deny
-                                        </button>
-                                    ` : ''}
-                                </div>
-                            </div>
-                            <div class="application-footer">
-                                <span class="status-badge ${statusClass}">
-                                    ${application.status || 'pending'}
-                                </span>
-                                <span>Applied: ${formattedDate}</span>
-                            </div>
-                        </div>
-                    `;
-                }).join('');
-            } catch (error) {
-                console.error('Error rendering applications:', error);
-                const applicationsList = document.getElementById('applicationsList');
-                if (applicationsList) {
-                    applicationsList.innerHTML = `
-                        <div class="empty-state">
-                            <i class="fas fa-exclamation-triangle"></i>
-                            <h3>Error loading applications</h3>
-                            <p>Please try refreshing the page.</p>
-                        </div>
-                    `;
-                }
+            const applications = loadApplications();
+            const applicationsList = document.getElementById('applicationsList');
+            
+            if (applications.length === 0) {
+                applicationsList.innerHTML = `
+                    <div class="empty-state">
+                        <i class="fas fa-inbox"></i>
+                        <h3>No applications found</h3>
+                        <p>No applications match your current filters.</p>
+                    </div>
+                `;
+                return;
             }
+            
+            applicationsList.innerHTML = applications.map(application => {
+                const statusClass = `status-${application.status || 'pending'}`;
+                const formattedDate = new Date(application.timestamp).toLocaleString('en-US', {
+                    year: 'numeric',
+                    month: 'short',
+                    day: 'numeric',
+                    hour: '2-digit',
+                    minute: '2-digit'
+                });
+                
+                return `
+                    <div class="application-card" data-id="${application.id}">
+                        <div class="application-header">
+                            <div class="applicant-info">
+                                <div class="applicant-name">${application.applicantName || 'Unnamed Applicant'}</div>
+                                <div class="applicant-discord">
+                                    <i class="fab fa-discord"></i>
+                                    ${application.discordUsername || 'No Discord ID'}
+                                </div>
+                            </div>
+                            <div class="application-actions">
+                                <button class="btn btn-view" onclick="showApplicationDetails('${application.id}')">
+                                    <i class="fas fa-eye"></i> View
+                                </button>
+                                ${application.status === 'pending' ? `
+                                    <button class="btn btn-approve" onclick="event.stopPropagation(); updateApplicationStatus('${application.id}', 'approved')">
+                                        <i class="fas fa-check"></i> Approve
+                                    </button>
+                                    <button class="btn btn-deny" onclick="event.stopPropagation(); updateApplicationStatus('${application.id}', 'denied')">
+                                        <i class="fas fa-times"></i> Deny
+                                    </button>
+                                ` : ''}
+                            </div>
+                        </div>
+                        <div class="application-footer">
+                            <span class="status-badge ${statusClass}">
+                                ${application.status || 'pending'}
+                            </span>
+                            <span>Applied: ${formattedDate}</span>
+                        </div>
+                    </div>
+                `;
+            }).join('');
         }
         
         // Show application details in modal
@@ -880,6 +769,9 @@
                 <div class="modal-actions" style="margin-top: 1.5rem; padding-top: 1.5rem; border-top: 1px solid var(--border);">
                     ${application.status === 'pending' ? `
                         <div style="display: flex; gap: 0.75rem;">
+                            <div class="moderator-input">
+                                <input type="text" id="moderator-name-${application.id}" placeholder="Your name" required>
+                            </div>
                             <button class="btn btn-approve" onclick="updateApplicationStatus('${application.id}', 'approved'); closeModal();">
                                 <i class="fas fa-check"></i> Approve Application
                             </button>
@@ -921,48 +813,45 @@
         
         // Update application status
         async function updateApplicationStatus(applicationId, status) {
-            try {
-                const moderator = getCurrentModerator();
-                const applications = JSON.parse(localStorage.getItem('trainingApplications') || '[]');
-                const application = applications.find(app => app.id === applicationId);
+            const applications = JSON.parse(localStorage.getItem('trainingApplications') || '[]');
+            const applicationIndex = applications.findIndex(app => app.id === applicationId);
+            
+            // Get moderator name from input
+            const moderatorNameInput = document.getElementById(`moderator-name-${applicationId}`);
+            const moderatorName = moderatorNameInput ? moderatorNameInput.value.trim() : 'Unknown Moderator';
+            
+            if (applicationIndex !== -1) {
+                const application = applications[applicationIndex];
+                application.status = status;
+                application.updatedAt = new Date().toISOString();
                 
-                if (application) {
-                    const oldStatus = application.status || 'pending';
-                    application.status = status;
-                    application.updatedAt = new Date().toISOString();
-                    
-                    // Track who made the change
-                    addModeratorAction(application, `Status changed to ${status}`);
-                    
-                    // Save the updated applications
-                    localStorage.setItem('trainingApplications', JSON.stringify(applications));
-                    
-                    // Show success message with moderator info
-                    showNotification(`Application ${status} by ${moderator}`, 'success');
-                    
-                    // Re-render applications
-                    renderApplications();
-                    
-                    // Close the modal
-                    closeModal();
-                    
-                    // Log the action
-                    console.log(`[${new Date().toISOString()}] ${moderator} changed application ${applicationId} status from ${oldStatus} to ${status}`);
-                    
-                    // Send Discord notification if webhook is configured
-                    try {
-                        await sendDiscordNotification(status.toUpperCase(), application);
-                    } catch (error) {
-                        console.error('Error sending Discord notification:', error);
+                // Store who processed this application
+                application.processedBy = {
+                    id: 'local-admin',
+                    username: moderatorName,
+                    discriminator: '0000',
+                    timestamp: new Date().toISOString(),
+                    adminName: moderatorName
+                };
+                
+                localStorage.setItem('trainingApplications', JSON.stringify(applications));
+                
+                // Re-render the applications list
+                renderApplications();
+                
+                // Show success notification
+                showNotification(`Application has been ${status} by ${moderatorName}.`, status === 'approved' ? 'success' : 'error');
+                
+                // Send Discord notification
+                try {
+                    const webhookType = status.toUpperCase();
+                    if (webhookType === 'APPROVED' || webhookType === 'DENIED') {
+                        await sendDiscordNotification(webhookType, application);
                     }
-                    
-                    return true;
+                } catch (error) {
+                    console.error('Error sending Discord notification:', error);
+                    // Don't show error to user, just log it
                 }
-                return false;
-            } catch (error) {
-                console.error('Error updating application status:', error);
-                showNotification('Failed to update application status', 'error');
-                return false;
             }
         }
         
@@ -973,119 +862,26 @@
             }
         }
         
-        // Debug function to check if elements exist
-        function checkElements() {
-            console.log('Checking elements...');
-            const appsList = document.getElementById('applicationsList');
-            const userEl = document.getElementById('username');
-            console.log('applicationsList:', appsList);
-            console.log('username:', userEl);
-            return { appsList, userEl };
-        }
-
-        // Wait for everything to be fully loaded
-        function initializeDashboard() {
-            console.log('Initializing dashboard...');
+        // Initialize the admin dashboard
+        document.addEventListener('DOMContentLoaded', () => {
+            // Render applications on page load
+            renderApplications();
             
-            // Initialize username display
-            const userEl = document.getElementById('username');
-            if (userEl) {
-                userEl.textContent = 'Admin';
-            }
+            // Add event listeners for filters
+            document.getElementById('statusFilter').addEventListener('change', renderApplications);
+            document.getElementById('searchInput').addEventListener('input', renderApplications);
             
-            // Initialize applications list with retry logic
-            function initApplicationsList(attempt = 0) {
-                const appsList = document.getElementById('applicationsList');
-                if (appsList) {
-                    console.log('Applications list container found');
-                    renderApplications();
-                    return true;
-                } else if (attempt < 3) {
-                    console.warn(`Applications list container not found (attempt ${attempt + 1}/3), retrying...`);
-                    setTimeout(() => initApplicationsList(attempt + 1), 500);
-                    return false;
-                } else {
-                    console.error('Failed to find applications list container after multiple attempts');
-                    return false;
-                }
-            }
+            // Close modal button
+            document.querySelector('.close-modal').addEventListener('click', closeModal);
             
-            initApplicationsList();
-            console.log('Dashboard initialization complete');
-        }
-        
-        // Setup home button
-        function setupHomeButton() {
-            const homeBtn = document.getElementById('homeBtn');
-            if (homeBtn) {
-                homeBtn.addEventListener('click', () => {
-                    window.location.href = 'index.html';
-                });
+            // Check if there are any applications
+            const applications = JSON.parse(localStorage.getItem('trainingApplications') || '[]');
+            if (applications.length === 0) {
+                console.log('No applications found in localStorage');
+            } else {
+                console.log(`Loaded ${applications.length} applications from localStorage`);
             }
-        }
-
-        // Initialize the application
-        function initApp() {
-            console.log('Admin dashboard initialized');
-            
-            // Setup event listeners
-            const statusFilter = document.getElementById('statusFilter');
-            if (statusFilter) {
-                statusFilter.addEventListener('change', renderApplications);
-            }
-            
-            const searchInput = document.getElementById('searchInput');
-            if (searchInput) {
-                searchInput.addEventListener('input', renderApplications);
-            }
-            
-            const closeModalBtn = document.querySelector('.close-modal');
-            if (closeModalBtn) {
-                closeModalBtn.addEventListener('click', closeModal);
-            }
-            
-            const modal = document.getElementById('applicationModal');
-            if (modal) {
-                modal.addEventListener('click', function(e) {
-                    if (e.target === modal) closeModal();
-                });
-            }
-            
-            // Load and render applications
-            loadAndRenderApplications();
-        }
-        
-        // Load and render applications
-        function loadAndRenderApplications() {
-            try {
-                const appsList = document.getElementById('applicationsList');
-                if (!appsList) {
-                    console.error('Applications list container not found');
-                    return;
-                }
-                
-                const apps = JSON.parse(localStorage.getItem('trainingApplications') || '[]');
-                if (apps.length > 0) {
-                    renderApplications();
-                } else {
-                    appsList.innerHTML = `
-                        <div class="empty-state">
-                            <i class="fas fa-inbox"></i>
-                            <h3>No applications found</h3>
-                            <p>Submitted training applications will appear here.</p>
-                        </div>`;
-                }
-            } catch (e) {
-                console.error('Error loading applications:', e);
-            }
-        }
-        
-        // Start the application
-        if (document.readyState === 'loading') {
-            document.addEventListener('DOMContentLoaded', initApp);
-        } else {
-            initApp();
-        }
+        });
     </script>
 </body>
 </html>

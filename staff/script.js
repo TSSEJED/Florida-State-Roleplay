@@ -151,12 +151,11 @@ document.addEventListener('DOMContentLoaded', function() {
         console.log('Opening PDF:', absolutePdfUrl);
     }
     
-    // Function to show access popup
+    // Function to show document access popup
     function showAccessPopup(docType) {
-        // Store the document type in a data attribute for later use
+        // Store the document type in a data attribute
         accessPopup.setAttribute('data-doc-type', docType);
         accessPopup.classList.remove('hidden');
-        accessCodeInput.focus();
     }
     
     // Join Game button functionality
@@ -164,36 +163,17 @@ document.addEventListener('DOMContentLoaded', function() {
         window.open('https://policeroleplay.community/join/AebBj', '_blank');
     });
     
-    // Access code popup functionality
-    submitCodeBtn.addEventListener('click', () => {
-        const code = accessCodeInput.value.trim();
+    // View Document button functionality
+    const viewDocumentBtn = document.getElementById('view-document');
+    viewDocumentBtn.addEventListener('click', () => {
         const docType = accessPopup.getAttribute('data-doc-type');
+        accessPopup.classList.add('hidden');
         
-        if (code === 'sejed') {
-            accessPopup.classList.add('hidden');
-            
-            if (docType === 'training') {
-                openPdfViewer('Full staff training document.pdf', 'Full Staff Training Document');
-            } else if (docType === 'trainer') {
-                openPdfViewer('Trainer Guide for FSRP (2).pdf', 'Trainer Information Document');
-            }
-            
-            accessCodeInput.value = '';
-        } else {
-            alert('Invalid access code. Please try again or open a Discord ticket.');
+        if (docType === 'training') {
+            openPdfViewer('Full staff training document.pdf', 'Full Staff Training Document');
+        } else if (docType === 'trainer') {
+            openPdfViewer('Trainer Guide for FSRP (2).pdf', 'Trainer Information Document');
         }
-    });
-    
-    // Enter key for access code
-    accessCodeInput.addEventListener('keypress', (e) => {
-        if (e.key === 'Enter') {
-            submitCodeBtn.click();
-        }
-    });
-    
-    // Open Discord button
-    openDiscordBtn.addEventListener('click', () => {
-        window.open('https://discord.gg/2Zustjzbtf', '_blank');
     });
     
     // Close popup button

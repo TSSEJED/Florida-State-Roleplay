@@ -1,7 +1,7 @@
 {
   "name": "fsrp-bot",
   "version": "1.0.0",
-  "description": "Advanced Discord bot for FSRP with authentication and management features",
+  "description": "Advanced Discord bot for FSRP with management features",
   "main": "src/index.js",
   "scripts": {
     "start": "node src/index.js",
