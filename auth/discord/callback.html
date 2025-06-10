@@ -52,17 +52,22 @@
         const code = urlParams.get('code');
         const error = urlParams.get('error');
 
-        // Admin Discord IDs (replace with your admin IDs)
-        const ADMIN_IDS = ['YOUR_ADMIN_ID_1', 'YOUR_ADMIN_ID_2'];
+        // Admin role IDs (you'll need to replace these with your actual admin role IDs)
+        const ADMIN_ROLE_IDS = ['1376876703808360559', '1377651835715846214'];
         
-        // For now, we'll just store the code in localStorage and redirect
-        // In a production app, you would exchange this code for a token on your backend
+        // Function to check if user has admin role
+        function hasAdminRole(userRoles) {
+            return userRoles.some(role => ADMIN_ROLE_IDS.includes(role));
+        }
+        
+        // In a real app, you would exchange the code for a token and fetch user roles
+        // For now, we'll use a simple approach to demonstrate the flow
 
         async function handleAuth() {
             if (error) {
                 console.error('Authentication error:', error);
                 alert('Authentication failed: ' + error);
-                window.location.href = '/login.html';
+                window.location.href = '/training-request/login.html';
                 return;
             }
 
@@ -71,11 +76,28 @@
                 // For now, we'll just store the code and redirect
                 console.log('Auth code received:', code);
                 
+                // In a real app, you would:
+                // 1. Exchange the code for a token
+                // 2. Fetch user info and roles
+                // 3. Check if user has admin role
+                
+                // For demo purposes, we'll use a simple approach
+                // In production, replace this with actual API calls
+                const isAdmin = false; // This would be set based on actual role check
+                
                 // Store the code in session storage
                 sessionStorage.setItem('discord_auth_code', code);
                 
-                // Redirect to the main app
-                window.location.href = '/index.html';
+                // Get the intended destination from sessionStorage
+                const redirectTo = sessionStorage.getItem('redirectAfterLogin') || 'index.html';
+                
+                // If user is not an admin but trying to access admin area, redirect to index
+                if (redirectTo.includes('admin') && !isAdmin) {
+                    window.location.href = '/training-request/index.html';
+                } else {
+                    // Otherwise, redirect to the intended destination
+                    window.location.href = `/training-request/${redirectTo}`;
+                }
             } catch (err) {
                 console.error('Authentication failed:', err);
                 alert('Authentication failed. Please try again.');
