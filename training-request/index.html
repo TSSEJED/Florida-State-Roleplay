@@ -4,37 +4,19 @@
     <!-- Include session manager -->
     <script src="js/session.js"></script>
     <script>
-        // Simple auth check
+        // Simple welcome message
         document.addEventListener('DOMContentLoaded', () => {
-            // Skip auth check for login and callback pages
-            if (window.location.pathname.includes('login') || 
-                window.location.pathname.includes('callback')) {
-                return;
-            }
-
-            // Check if user is authenticated
-            const userData = sessionStorage.getItem('userData');
-            
-            if (!userData) {
-                // If not authenticated, redirect to login
-                console.log('User not authenticated, redirecting to login');
-                sessionStorage.setItem('loginError', 'Please log in to access this page');
-                window.location.href = 'login.html';
-                return;
-            }
-            
-            // Update UI with user info
             try {
-                const user = JSON.parse(userData);
-                const userInfoElement = document.getElementById('user-info');
-                if (userInfoElement) {
-                    userInfoElement.textContent = `Welcome, ${user.username}`;
+                const userData = sessionStorage.getItem('userData');
+                if (userData) {
+                    const user = JSON.parse(userData);
+                    const userInfoElement = document.getElementById('user-info');
+                    if (userInfoElement) {
+                        userInfoElement.textContent = `Welcome, ${user.username || 'User'}`;
+                    }
                 }
             } catch (e) {
-                console.error('Error parsing user data:', e);
-                // If we can't parse user data, clear and redirect
-                sessionStorage.clear();
-                window.location.href = 'login.html';
+                console.error('Error loading user data:', e);
             }
         });
     </script>

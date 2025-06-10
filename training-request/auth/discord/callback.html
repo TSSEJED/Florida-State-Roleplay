@@ -191,15 +191,8 @@
                     // Store only the essential user data in session storage
                     sessionStorage.setItem('userData', JSON.stringify(userData));
                     
-                    // Always redirect to the main index page
-                    const redirectUrl = window.location.origin + '/training-request/index.html';
-                    console.log('Authentication successful, redirecting to:', redirectUrl);
-                    
-                    // Clear any error messages from storage
-                    sessionStorage.removeItem('loginError');
-                    
-                    // Perform the redirect
-                    window.location.href = redirectUrl;
+                    // Redirect directly to the index page
+                    window.location.href = '../index.html';
                 } catch (redirectError) {
                     console.error('Error during redirect:', redirectError);
                     showError(`Error during redirect: ${redirectError.message}`);
