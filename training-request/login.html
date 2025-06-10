@@ -276,27 +276,23 @@
         });
 
         function initiateDiscordLogin() {
-            // Store the redirect URL to index after login
-            const basePath = window.location.origin + '/training-request';
-            const redirectTo = basePath + '/index.html';
+            // Clear any existing session data
+            sessionStorage.clear();
             
-            console.log('Setting redirect URL:', redirectTo);
-            localStorage.setItem('redirectAfterLogin', redirectTo);
-
-            // Generate random state for CSRF protection
-            const state = Math.random().toString(36).substring(2);
-            localStorage.setItem('oauth_state', state);
-
-            // Build the Discord OAuth2 URL with token response type
+            // Build the Discord OAuth2 URL
             const clientId = '1381993589663338637'; // FSRP Bot Client ID
             const redirectUri = encodeURIComponent(`${window.location.origin}/training-request/auth/discord/callback.html`);
             const scopes = encodeURIComponent('identify email');
+            const state = Math.random().toString(36).substring(2);
             
-            // Using token response type for client-side flow
+            // Store state for CSRF protection
+            sessionStorage.setItem('oauth_state', state);
+            
+            // Build auth URL
             const authUrl = `https://discord.com/api/oauth2/authorize?client_id=${clientId}&redirect_uri=${redirectUri}&response_type=token&scope=${scopes}&state=${state}`;
-            console.log('Redirecting to Discord OAuth:', authUrl);
+            console.log('Initiating Discord OAuth:', authUrl);
             
-            // Redirect to Discord OAuth
+            // Redirect to Discord
             window.location.href = authUrl;
         }
 

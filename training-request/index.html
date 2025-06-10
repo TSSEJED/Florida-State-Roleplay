@@ -4,34 +4,21 @@
     <!-- Include session manager -->
     <script src="js/session.js"></script>
     <script>
-        // Auth check with session timeout
+        // Simple auth check
         document.addEventListener('DOMContentLoaded', () => {
-            // Skip auth check if we're on login or callback pages
+            // Skip auth check for login and callback pages
             if (window.location.pathname.includes('login') || 
                 window.location.pathname.includes('callback')) {
                 return;
             }
 
             // Check if user is authenticated
-            const isAuthenticated = sessionStorage.getItem('userAuthenticated') === 'true';
             const userData = sessionStorage.getItem('userData');
-            const loginTime = parseInt(sessionStorage.getItem('loginTime') || '0');
-            const currentTime = new Date().getTime();
-            const sessionTimeout = 4 * 60 * 60 * 1000; // 4 hours in milliseconds
-
-            // Check if session is valid
-            const isSessionValid = isAuthenticated && 
-                                 userData && 
-                                 (currentTime - loginTime) < sessionTimeout;
-
-            if (!isSessionValid) {
-                // Clear session data
-                sessionStorage.removeItem('userAuthenticated');
-                sessionStorage.removeItem('userData');
-                sessionStorage.removeItem('loginTime');
-                
-                // Redirect to login with error
-                sessionStorage.setItem('loginError', 'Your session has expired. Please log in again.');
+            
+            if (!userData) {
+                // If not authenticated, redirect to login
+                console.log('User not authenticated, redirecting to login');
+                sessionStorage.setItem('loginError', 'Please log in to access this page');
                 window.location.href = 'login.html';
                 return;
             }
@@ -45,10 +32,8 @@
                 }
             } catch (e) {
                 console.error('Error parsing user data:', e);
-                // If we can't parse user data, force logout
-                sessionStorage.removeItem('userAuthenticated');
-                sessionStorage.removeItem('userData');
-                sessionStorage.removeItem('loginTime');
+                // If we can't parse user data, clear and redirect
+                sessionStorage.clear();
                 window.location.href = 'login.html';
             }
         });

@@ -188,26 +188,15 @@
                 }
                 
                 try {
-                    // Store user data and login timestamp in session storage
-                    const loginTime = new Date().getTime();
-                    sessionStorage.setItem('userAuthenticated', 'true');
+                    // Store only the essential user data in session storage
                     sessionStorage.setItem('userData', JSON.stringify(userData));
-                    sessionStorage.setItem('loginTime', loginTime.toString());
                     
-                    // Get the redirect URL from localStorage or use default
-                    let redirectUrl = localStorage.getItem('redirectAfterLogin');
+                    // Always redirect to the main index page
+                    const redirectUrl = window.location.origin + '/training-request/index.html';
+                    console.log('Authentication successful, redirecting to:', redirectUrl);
                     
-                    // If no redirect URL is set, use the default index page
-                    if (!redirectUrl) {
-                        const basePath = window.location.origin + '/training-request';
-                        redirectUrl = basePath + '/index.html';
-                    }
-                    
-                    console.log('Redirecting to:', redirectUrl);
-                    
-                    // Clear any error messages and redirect URL from storage
+                    // Clear any error messages from storage
                     sessionStorage.removeItem('loginError');
-                    localStorage.removeItem('redirectAfterLogin');
                     
                     // Perform the redirect
                     window.location.href = redirectUrl;
