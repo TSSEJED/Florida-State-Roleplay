@@ -629,63 +629,83 @@
         
         // Render applications list with compact cards
         function renderApplications() {
-            const applications = loadApplications();
-            const applicationsList = document.getElementById('applicationsList');
-            
-            if (applications.length === 0) {
-                applicationsList.innerHTML = `
-                    <div class="empty-state">
-                        <i class="fas fa-inbox"></i>
-                        <h3>No applications found</h3>
-                        <p>No applications match your current filters.</p>
-                    </div>
-                `;
-                return;
-            }
-            
-            applicationsList.innerHTML = applications.map(application => {
-                const statusClass = `status-${application.status || 'pending'}`;
-                const formattedDate = new Date(application.timestamp).toLocaleString('en-US', {
-                    year: 'numeric',
-                    month: 'short',
-                    day: 'numeric',
-                    hour: '2-digit',
-                    minute: '2-digit'
-                });
+            try {
+                const applications = loadApplications();
+                const applicationsList = document.getElementById('applicationsList');
                 
-                return `
-                    <div class="application-card" data-id="${application.id}">
-                        <div class="application-header">
-                            <div class="applicant-info">
-                                <div class="applicant-name">${application.applicantName || 'Unnamed Applicant'}</div>
-                                <div class="applicant-discord">
-                                    <i class="fab fa-discord"></i>
-                                    ${application.discordUsername || 'No Discord ID'}
+                // Check if applicationsList element exists
+                if (!applicationsList) {
+                    console.error('Applications list container not found');
+                    return;
+                }
+                
+                if (!applications || applications.length === 0) {
+                    applicationsList.innerHTML = `
+                        <div class="empty-state">
+                            <i class="fas fa-inbox"></i>
+                            <h3>No applications found</h3>
+                            <p>No applications match your current filters.</p>
+                        </div>
+                    `;
+                    return;
+                }
+                
+                applicationsList.innerHTML = applications.map(application => {
+                    const statusClass = `status-${application.status || 'pending'}`;
+                    const formattedDate = new Date(application.timestamp).toLocaleString('en-US', {
+                        year: 'numeric',
+                        month: 'short',
+                        day: 'numeric',
+                        hour: '2-digit',
+                        minute: '2-digit'
+                    });
+                    
+                    return `
+                        <div class="application-card" data-id="${application.id}">
+                            <div class="application-header">
+                                <div class="applicant-info">
+                                    <div class="applicant-name">${application.applicantName || 'Unnamed Applicant'}</div>
+                                    <div class="applicant-discord">
+                                        <i class="fab fa-discord"></i>
+                                        ${application.discordUsername || 'No Discord ID'}
+                                    </div>
+                                </div>
+                                <div class="application-actions">
+                                    <button class="btn btn-view" onclick="showApplicationDetails('${application.id}')">
+                                        <i class="fas fa-eye"></i> View
+                                    </button>
+                                    ${application.status === 'pending' ? `
+                                        <button class="btn btn-approve" onclick="event.stopPropagation(); updateApplicationStatus('${application.id}', 'approved')">
+                                            <i class="fas fa-check"></i> Approve
+                                        </button>
+                                        <button class="btn btn-deny" onclick="event.stopPropagation(); updateApplicationStatus('${application.id}', 'denied')">
+                                            <i class="fas fa-times"></i> Deny
+                                        </button>
+                                    ` : ''}
                                 </div>
                             </div>
-                            <div class="application-actions">
-                                <button class="btn btn-view" onclick="showApplicationDetails('${application.id}')">
-                                    <i class="fas fa-eye"></i> View
-                                </button>
-                                ${application.status === 'pending' ? `
-                                    <button class="btn btn-approve" onclick="event.stopPropagation(); updateApplicationStatus('${application.id}', 'approved')">
-                                        <i class="fas fa-check"></i> Approve
-                                    </button>
-                                    <button class="btn btn-deny" onclick="event.stopPropagation(); updateApplicationStatus('${application.id}', 'denied')">
-                                        <i class="fas fa-times"></i> Deny
-                                    </button>
-                                ` : ''}
+                            <div class="application-footer">
+                                <span class="status-badge ${statusClass}">
+                                    ${application.status || 'pending'}
+                                </span>
+                                <span>Applied: ${formattedDate}</span>
                             </div>
                         </div>
-                        <div class="application-footer">
-                            <span class="status-badge ${statusClass}">
-                                ${application.status || 'pending'}
-                            </span>
-                            <span>Applied: ${formattedDate}</span>
+                    `;
+                }).join('');
+            } catch (error) {
+                console.error('Error rendering applications:', error);
+                const applicationsList = document.getElementById('applicationsList');
+                if (applicationsList) {
+                    applicationsList.innerHTML = `
+                        <div class="empty-state">
+                            <i class="fas fa-exclamation-triangle"></i>
+                            <h3>Error loading applications</h3>
+                            <p>Please try refreshing the page.</p>
                         </div>
-                    </div>
-                `;
-            }).join('');
+                    `;
+                }
+            }
         }
         
         // Show application details in modal
