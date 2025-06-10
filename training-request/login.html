@@ -79,10 +79,13 @@
     </script>
     <script src="js/session.js"></script>
     <script>
-        // Check if already logged in
+        // Check if already logged in when DOM is loaded
         document.addEventListener('DOMContentLoaded', () => {
-            if (window.sessionManager.isLoggedIn()) {
+            // Only redirect if we're not already on the login page
+            if (window.sessionManager.isLoggedIn() && !window.location.pathname.endsWith('login.html')) {
                 const redirectTo = sessionStorage.getItem('redirectAfterLogin') || 'index.html';
+                // Remove the redirect to prevent loops
+                sessionStorage.removeItem('redirectAfterLogin');
                 window.location.href = `/training-request/${redirectTo}`;
             }
         });

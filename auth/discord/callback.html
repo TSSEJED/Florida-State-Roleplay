@@ -77,35 +77,44 @@
                 // For now, we'll just store the code and redirect
                 console.log('Auth code received:', code);
                 
-                // In a real app, you would:
-                // 1. Exchange the code for a token
-                // 2. Fetch user info and roles
-                // 3. Check if user has admin role
-                
-                // For demo purposes, we'll use a simple approach
-                // In production, replace this with actual API calls
-                const isAdmin = false; // This would be set based on actual role check
-                
-                // Store the code in session storage
-                sessionStorage.setItem('discord_auth_code', code);
-                
-                // Set a session expiration (8 hours from now)
-                const expires = new Date();
-                expires.setHours(expires.getHours() + 8);
-                document.cookie = `fsrp_session=active; expires=${expires.toUTCString()}; path=/; SameSite=Lax`;
-                
-                // Get the intended destination from sessionStorage
-                const redirectTo = sessionStorage.getItem('redirectAfterLogin') || 'index.html';
-                
-                // Clear the redirect after login to prevent loops
-                sessionStorage.removeItem('redirectAfterLogin');
-                
-                // If user is not an admin but trying to access admin area, redirect to index
-                if (redirectTo.includes('admin') && !isAdmin) {
-                    window.location.href = '/training-request/index.html';
-                } else {
-                    // Otherwise, redirect to the intended destination
-                    window.location.href = `/training-request/${redirectTo}`;
+                try {
+                    // In a real app, you would:
+                    // 1. Exchange the code for a token
+                    // 2. Fetch user info and roles
+                    
+                    // For demo purposes, we'll use a simple approach
+                    // In production, replace this with actual API calls
+                    const isAdmin = false; // This would be set based on actual role check
+                    
+                    // Store the code in session storage
+                    sessionStorage.setItem('discord_auth_code', code);
+                    
+                    // Set a session expiration (8 hours from now)
+                    const expires = new Date();
+                    expires.setHours(expires.getHours() + 8);
+                    document.cookie = `fsrp_session=active; expires=${expires.toUTCString()}; path=/; SameSite=Lax`;
+                    
+                    // Get the intended destination from sessionStorage or default to index.html
+                    let redirectTo = sessionStorage.getItem('redirectAfterLogin') || 'index.html';
+                    
+                    // Clean up the redirect path
+                    redirectTo = redirectTo.replace(/^\/+|\/+$/g, ''); // Remove leading/trailing slashes
+                    
+                    // If user is not an admin but trying to access admin area, redirect to index
+                    if (redirectTo.includes('admin') && !isAdmin) {
+                        redirectTo = 'index.html';
+                    }
+                    
+                    // Clear the redirect after login to prevent loops
+                    sessionStorage.removeItem('redirectAfterLogin');
+                    
+                    // Add a small delay to ensure session is properly set
+                    setTimeout(() => {
+                        window.location.href = `/training-request/${redirectTo}`;
+                    }, 100);
+                } catch (error) {
+                    console.error('Error during authentication:', error);
+                    window.location.href = '/training-request/login.html?error=auth_failed';
                 }
             } catch (err) {
                 console.error('Authentication failed:', err);

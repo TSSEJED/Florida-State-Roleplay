@@ -2,47 +2,64 @@
 
 // Check if user is logged in
 function isLoggedIn() {
-    const hasAuthCode = !!sessionStorage.getItem('discord_auth_code');
-    const hasSessionCookie = document.cookie.split(';').some(
-        (item) => item.trim().startsWith('fsrp_session=')
-    );
-    return hasAuthCode && hasSessionCookie;
-}
-
-// Redirect to login if not authenticated
-function requireAuth(redirectTo = '') {
-    if (!isLoggedIn()) {
-        if (redirectTo) {
-            sessionStorage.setItem('redirectAfterLogin', redirectTo);
+    try {
+        // Check if we're on a public page
+        const publicPages = ['/login.html', '/auth/discord/callback.html', '/logout.html'];
+        const currentPage = window.location.pathname.replace('/training-request', '');
+        
+        if (publicPages.some(page => currentPage.endsWith(page))) {
+            return true; // Skip auth check for public pages
         }
-        window.location.href = '/training-request/login.html';
+        
+        const hasAuthCode = !!sessionStorage.getItem('discord_auth_code');
+        const hasSessionCookie = document.cookie.split(';').some(
+            (item) => item.trim().startsWith('fsrp_session=')
+        );
+        
+        return hasAuthCode && hasSessionCookie;
+    } catch (error) {
+        console.error('Session check error:', error);
         return false;
     }
-    return true;
+}
+
+// Check if current page is public
+function isPublicPage() {
+    const publicPages = ['/login.html', '/auth/discord/callback.html', '/logout.html'];
+    const currentPage = window.location.pathname.replace('/training-request', '');
+    return publicPages.some(page => currentPage.endsWith(page));
 }
 
 // Check session on page load
 function checkSession() {
-    if (window.location.pathname.includes('login.html') || 
-        window.location.pathname.includes('auth/discord/callback.html') ||
-        window.location.pathname.includes('logout.html')) {
-        return;
+    // Don't check session for public pages
+    if (isPublicPage()) {
+        return true;
     }
     
+    // If not logged in, redirect to login
     if (!isLoggedIn()) {
-        const currentPath = window.location.pathname.replace('/training-request/', '');
-        if (currentPath && currentPath !== '/training-request/') {
+        const currentPath = window.location.pathname.replace('/training-request', '') || '/index.html';
+        if (currentPath && !currentPath.includes('login.html')) {
             sessionStorage.setItem('redirectAfterLogin', currentPath);
         }
         window.location.href = '/training-request/login.html';
+        return false;
     }
+    
+    return true;
 }
 
 // Log out the user
 function logout() {
-    sessionStorage.clear();
-    document.cookie = 'fsrp_session=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/;';
-    window.location.href = '/training-request/logout.html';
+    try {
+        sessionStorage.clear();
+        document.cookie = 'fsrp_session=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/;';
+        window.location.href = '/training-request/logout.html';
+    } catch (error) {
+        console.error('Logout error:', error);
+        window.location.href = '/training-request/login.html';
+    }
 }
 
 // Get auth code
@@ -50,21 +67,26 @@ function getAuthCode() {
     return sessionStorage.getItem('discord_auth_code');
 }
 
-// Run session check when this script loads
-if (typeof window !== 'undefined') {
+// Initialize session management
+function initSession() {
+    // Only run in browser environment
+    if (typeof window === 'undefined') return;
+    
     // Export functions to window
     window.sessionManager = {
         isLoggedIn,
-        requireAuth,
         logout,
         getAuthCode,
         checkSession
     };
     
-    // Run session check on page load
-    document.addEventListener('DOMContentLoaded', () => {
-        if (!window.location.pathname.includes('logout.html')) {
-            checkSession();
-        }
-    });
+    // Run session check when DOM is loaded
+    if (document.readyState === 'loading') {
+        document.addEventListener('DOMContentLoaded', checkSession);
+    } else {
+        checkSession();
+    }
 }
+
+// Initialize session management
+initSession();
