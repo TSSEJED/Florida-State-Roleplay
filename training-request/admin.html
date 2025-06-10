@@ -577,32 +577,41 @@
         
         // Load applications from localStorage
         function loadApplications() {
-            const applications = JSON.parse(localStorage.getItem('trainingApplications') || '[]');
-            const statusFilter = document.getElementById('statusFilter').value;
-            const searchQuery = document.getElementById('searchInput').value.toLowerCase();
-            
-            let filteredApplications = applications;
-            
-            // Apply status filter
-            if (statusFilter !== 'all') {
-                filteredApplications = filteredApplications.filter(app => app.status === statusFilter);
+            try {
+                const applications = JSON.parse(localStorage.getItem('trainingApplications') || '[]');
+                const statusFilterEl = document.getElementById('statusFilter');
+                const searchInputEl = document.getElementById('searchInput');
+                
+                // Default values if elements don't exist
+                const statusFilter = statusFilterEl ? statusFilterEl.value : 'all';
+                const searchQuery = searchInputEl ? searchInputEl.value.toLowerCase() : '';
+                
+                let filteredApplications = [...applications];
+                
+                // Apply status filter
+                if (statusFilter !== 'all') {
+                    filteredApplications = filteredApplications.filter(app => app.status === statusFilter);
+                }
+                
+                // Apply search filter
+                if (searchQuery) {
+                    filteredApplications = filteredApplications.filter(app => {
+                        return (
+                            (app.applicantName && app.applicantName.toLowerCase().includes(searchQuery)) ||
+                            (app.discordUsername && app.discordUsername.toLowerCase().includes(searchQuery)) ||
+                            (app.email && app.email.toLowerCase().includes(searchQuery))
+                        );
+                    });
+                }
+                
+                // Sort by timestamp (newest first)
+                filteredApplications.sort((a, b) => new Date(b.timestamp) - new Date(a.timestamp));
+                
+                return filteredApplications;
+            } catch (error) {
+                console.error('Error loading applications:', error);
+                return [];
             }
-            
-            // Apply search filter
-            if (searchQuery) {
-                filteredApplications = filteredApplications.filter(app => {
-                    return (
-                        (app.applicantName && app.applicantName.toLowerCase().includes(searchQuery)) ||
-                        (app.discordUsername && app.discordUsername.toLowerCase().includes(searchQuery)) ||
-                        (app.email && app.email.toLowerCase().includes(searchQuery))
-                    );
-                });
-            }
-            
-            // Sort by timestamp (newest first)
-            filteredApplications.sort((a, b) => new Date(b.timestamp) - new Date(a.timestamp));
-            
-            return filteredApplications;
         }
         
         // Render applications list with compact cards
