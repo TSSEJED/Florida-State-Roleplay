@@ -928,40 +928,62 @@
         
         // Initialize the admin dashboard
         document.addEventListener('DOMContentLoaded', () => {
-            // Update username in the greeting
-            try {
-                const userData = JSON.parse(sessionStorage.getItem('userData') || '{}');
-                const username = userData.username || 'Admin';
-                document.getElementById('username').textContent = username;
-            } catch (e) {
-                console.error('Error parsing user data:', e);
+            // Update username in the greeting if element exists
+            const usernameElement = document.getElementById('username');
+            if (usernameElement) {
+                try {
+                    const userData = JSON.parse(sessionStorage.getItem('userData') || '{}');
+                    const username = userData.username || 'Admin';
+                    usernameElement.textContent = username;
+                } catch (e) {
+                    console.error('Error parsing user data:', e);
+                }
             }
 
-            // Add logout functionality
-            document.getElementById('logoutBtn').addEventListener('click', () => {
-                // Clear session
-                sessionStorage.removeItem('isLoggedIn');
-                sessionStorage.removeItem('userData');
-                // Redirect to login
-                window.location.href = 'login.html';
-            });
+            // Add logout functionality if button exists
+            const logoutBtn = document.getElementById('logoutBtn');
+            if (logoutBtn) {
+                logoutBtn.addEventListener('click', () => {
+                    // Clear session
+                    sessionStorage.removeItem('isLoggedIn');
+                    sessionStorage.removeItem('userData');
+                    // Redirect to login
+                    window.location.href = 'login.html';
+                });
+            }
 
             // Render applications on page load
-            renderApplications();
+            if (typeof renderApplications === 'function') {
+                renderApplications();
+            }
             
-            // Add event listeners for filters
-            document.getElementById('statusFilter').addEventListener('change', renderApplications);
-            document.getElementById('searchInput').addEventListener('input', renderApplications);
+            // Add event listeners for filters if they exist
+            const statusFilter = document.getElementById('statusFilter');
+            if (statusFilter) {
+                statusFilter.addEventListener('change', renderApplications);
+            }
             
-            // Close modal button
-            document.querySelector('.close-modal').addEventListener('click', closeModal);
+            const searchInput = document.getElementById('searchInput');
+            if (searchInput) {
+                searchInput.addEventListener('input', renderApplications);
+            }
+            
+            // Close modal button if it exists
+            const closeModalBtn = document.querySelector('.close-modal');
+            if (closeModalBtn) {
+                closeModalBtn.addEventListener('click', closeModal);
+            }
             
             // Check if there are any applications
-            const applications = JSON.parse(localStorage.getItem('trainingApplications') || '[]');
-            if (applications.length === 0) {
-                console.log('No applications found in localStorage');
-            } else {
-                console.log(`Loaded ${applications.length} applications from localStorage`);
+            try {
+                const applications = JSON.parse(localStorage.getItem('trainingApplications') || '[]');
+                if (applications.length === 0) {
+                    console.log('No applications found in localStorage');
+                } else {
+                    console.log(`Loaded ${applications.length} applications from localStorage`);
+                }
+            } catch (e) {
+                console.error('Error loading applications:', e);
             }
         });
     </script>
