@@ -312,20 +312,26 @@
     </style>
 </head>
 <body>
-    <!-- User Info Bar -->
-    <div id="userInfoBar" style="background: #2c3e50; color: white; padding: 0.5rem 2rem; display: flex; justify-content: space-between; align-items: center; font-size: 0.9rem;">
-        <div id="userGreeting">Welcome, <span id="username">Admin</span></div>
-        <div style="display: flex; gap: 1rem; align-items: center;">
-            <span id="userDiscordInfo"></span>
-            <a href="index.html" style="color: white; text-decoration: none;">
-                <i class="fas fa-home"></i> Home
-            </a>
+    <!-- Moderator Name Modal -->
+    <div id="moderatorModal" class="modal" style="display: none;">
+        <div class="modal-content" style="max-width: 500px; padding: 30px; text-align: center;">
+            <h2 style="margin-bottom: 20px; color: #2c3e50;">Moderator Access</h2>
+            <p style="margin-bottom: 25px; color: #555;">Please enter your name to continue as a moderator. This will be used to track your actions.</p>
+            <input type="text" id="moderatorName" placeholder="Your name" style="width: 100%; padding: 12px; margin-bottom: 20px; border: 2px solid #ddd; border-radius: 6px; font-size: 16px;">
+            <button id="saveModerator" class="btn btn-primary" style="width: 100%; padding: 12px; font-size: 16px; background: #4a6fa5; color: white; border: none; border-radius: 6px; cursor: pointer;">
+                Continue
+            </button>
         </div>
     </div>
 
     <div class="admin-container">
         <div class="admin-header">
-            <h1>Training Applications</h1>
+            <div style="display: flex; justify-content: space-between; align-items: center; width: 100%;">
+                <h1>Training Applications</h1>
+                <div id="moderatorDisplay" style="display: none; background: #f0f2f5; padding: 8px 16px; border-radius: 20px; font-size: 14px; color: #4a6fa5; font-weight: 500;">
+                    <i class="fas fa-user-shield"></i> <span id="moderatorNameDisplay"></span>
+                </div>
+            </div>
             <div class="admin-controls">
                 <div class="filters">
                     <div class="filter-group">
@@ -342,8 +348,8 @@
                         <input type="text" id="searchInput" placeholder="Search applications...">
                     </div>
                 </div>
-                <button id="logoutBtn" class="btn btn-secondary">
-                    <i class="fas fa-sign-out-alt"></i> Logout
+                <button id="homeBtn" class="btn btn-secondary">
+                    <i class="fas fa-home"></i> Home
                 </button>
             </div>
         </div>
@@ -477,75 +483,86 @@
             }
         }
 
+        // Store moderator name in session storage
+        let currentModerator = sessionStorage.getItem('moderatorName');
+        
+        // Show moderator name in the UI
+        function updateModeratorUI() {
+            const moderatorDisplay = document.getElementById('moderatorNameDisplay');
+            if (moderatorDisplay && currentModerator) {
+                moderatorDisplay.textContent = currentModerator;
+                document.getElementById('moderatorDisplay').style.display = 'flex';
+            }
+        }
+        
+        // Check and prompt for moderator name
+        function checkModerator() {
+            if (!currentModerator) {
+                const modal = document.getElementById('moderatorModal');
+                const nameInput = document.getElementById('moderatorName');
+                const saveBtn = document.getElementById('saveModerator');
+                
+                modal.style.display = 'flex';
+                
+                saveBtn.onclick = function() {
+                    const name = nameInput.value.trim();
+                    if (name) {
+                        currentModerator = name;
+                        sessionStorage.setItem('moderatorName', name);
+                        modal.style.display = 'none';
+                        updateModeratorUI();
+                        showNotification(`Welcome, ${name}!`);
+                    } else {
+                        alert('Please enter your name to continue.');
+                    }
+                };
+                
+                // Handle Enter key
+                nameInput.addEventListener('keypress', function(e) {
+                    if (e.key === 'Enter') {
+                        saveBtn.click();
+                    }
+                });
+            } else {
+                updateModeratorUI();
+            }
+        }
+        
+        // Get current moderator name for logging
+        function getCurrentModerator() {
+            return currentModerator || 'Unknown Moderator';
+        }
+        
+        // Add moderator to application history
+        function addModeratorAction(application, action) {
+            if (!application.history) application.history = [];
+            const moderator = getCurrentModerator();
+            application.history.push({
+                action: action,
+                moderator: moderator,
+                timestamp: new Date().toISOString()
+            });
+            return application;
+        }
+        
         // Admin role ID - Replace with your actual Discord role ID
         const ADMIN_ROLE_ID = '1377651835715846214'; // Your admin role ID
 
 
-        // Check authentication and admin status
-        document.addEventListener('DOMContentLoaded', async () => {
-            const userGreeting = document.getElementById('userGreeting');
-            const userDiscordInfo = document.getElementById('userDiscordInfo');
-            const logoutBtn = document.getElementById('logoutBtn');
-            const loadingIndicator = document.createElement('div');
+        // Initialize the application when DOM is ready
+        document.addEventListener('DOMContentLoaded', () => {
+            // Initialize the dashboard
+            initializeDashboard();
             
-            // Show loading state
-            loadingIndicator.textContent = 'Checking permissions...';
-            loadingIndicator.style.padding = '20px';
-            loadingIndicator.style.textAlign = 'center';
-            document.body.innerHTML = '';
-            document.body.appendChild(loadingIndicator);
-
-            try {
-                // Check if user is logged in via Discord
-                const userData = sessionStorage.getItem('userData');
-                if (!userData) {
-                    // Redirect to login with a return URL
-                    sessionStorage.setItem('redirectAfterLogin', 'admin.html');
-                    window.location.href = 'login.html';
-                    return;
-                }
-
-
-                const user = JSON.parse(userData);
-                
-                // Check if user has admin role
-                const hasAdminRole = user.roles && user.roles.includes(ADMIN_ROLE_ID);
-                
-                if (!hasAdminRole) {
-                    loadingIndicator.textContent = 'You do not have permission to access this page. Redirecting...';
-                    setTimeout(() => window.location.href = 'index.html', 2000);
-                    return;
-                }
-
-                
-                // User is admin, show the admin interface
-                document.body.innerHTML = document.body.innerHTML; // Restore original content
-                
-                // Update UI with user info
-                if (userGreeting) {
-                    userGreeting.textContent = `Welcome, ${user.username || 'Admin'}`;
-                }
-                if (userDiscordInfo) {
-                    userDiscordInfo.textContent = `${user.username}${user.discriminator ? `#${user.discriminator}` : ''}`;
-                }
-
-                // Handle logout
-                if (logoutBtn) {
-                    logoutBtn.addEventListener('click', () => {
-                        sessionStorage.removeItem('userData');
-                        window.location.href = 'login.html';
-                    });
-                }
-                
-                // Load applications
-                if (typeof renderApplications === 'function') {
-                    renderApplications();
-                }
-                
-            } catch (error) {
-                console.error('Error checking admin access:', error);
-                loadingIndicator.textContent = 'An error occurred. Redirecting to login...';
-                setTimeout(() => window.location.href = 'login.html', 2000);
+            // Check moderator status
+            checkModerator();
+            
+            // Set up the home button
+            setupHomeButton();
+            
+            // Load applications
+            if (typeof renderApplications === 'function') {
+                renderApplications();
             }
         });
 
@@ -904,45 +921,48 @@
         
         // Update application status
         async function updateApplicationStatus(applicationId, status) {
-            const applications = JSON.parse(localStorage.getItem('trainingApplications') || '[]');
-            const applicationIndex = applications.findIndex(app => app.id === applicationId);
-            const currentUser = JSON.parse(localStorage.getItem('user') || 'null');
-            
-            if (applicationIndex !== -1) {
-                const application = applications[applicationIndex];
-                application.status = status;
-                application.updatedAt = new Date().toISOString();
+            try {
+                const moderator = getCurrentModerator();
+                const applications = JSON.parse(localStorage.getItem('trainingApplications') || '[]');
+                const application = applications.find(app => app.id === applicationId);
                 
-                // Store who processed this application
-                application.processedBy = {
-                    id: currentUser?.id || 'unknown',
-                    username: currentUser?.username || 'System',
-                    discriminator: currentUser?.discriminator || '0000',
-                    timestamp: new Date().toISOString()
-                };
-                
-                localStorage.setItem('trainingApplications', JSON.stringify(applications));
-                
-                // Re-render the applications list
-                renderApplications();
-                
-                // Show success notification
-                showNotification(`Application has been ${status} successfully.`, status === 'approved' ? 'success' : 'error');
-                
-                // Send Discord notification
-                try {
-                    const webhookType = status.toUpperCase();
-                    if (webhookType === 'APPROVED' || webhookType === 'DENIED') {
-                        // Add admin info to the application data
-                        application.processedBy = application.processedBy || {};
-                        application.processedBy.adminId = currentUser?.id;
-                        application.processedBy.adminName = currentUser?.username;
-                        await sendDiscordNotification(webhookType, application);
+                if (application) {
+                    const oldStatus = application.status || 'pending';
+                    application.status = status;
+                    application.updatedAt = new Date().toISOString();
+                    
+                    // Track who made the change
+                    addModeratorAction(application, `Status changed to ${status}`);
+                    
+                    // Save the updated applications
+                    localStorage.setItem('trainingApplications', JSON.stringify(applications));
+                    
+                    // Show success message with moderator info
+                    showNotification(`Application ${status} by ${moderator}`, 'success');
+                    
+                    // Re-render applications
+                    renderApplications();
+                    
+                    // Close the modal
+                    closeModal();
+                    
+                    // Log the action
+                    console.log(`[${new Date().toISOString()}] ${moderator} changed application ${applicationId} status from ${oldStatus} to ${status}`);
+                    
+                    // Send Discord notification if webhook is configured
+                    try {
+                        await sendDiscordNotification(status.toUpperCase(), application);
+                    } catch (error) {
+                        console.error('Error sending Discord notification:', error);
                     }
-                } catch (error) {
-                    console.error('Error sending Discord notification:', error);
-                    // Don't show error to user, just log it
+                    
+                    return true;
                 }
+                return false;
+            } catch (error) {
+                console.error('Error updating application status:', error);
+                showNotification('Failed to update application status', 'error');
+                return false;
             }
         }
         
@@ -967,26 +987,10 @@
         function initializeDashboard() {
             console.log('Initializing dashboard...');
             
-            // Update username in the greeting if element exists
-            function updateUsername() {
-                const userEl = document.getElementById('username');
-                if (userEl) {
-                    try {
-                        const userData = JSON.parse(sessionStorage.getItem('userData') || '{}');
-                        const username = userData.username || 'Admin';
-                        userEl.textContent = username;
-                        return true;
-                    } catch (e) {
-                        console.error('Error parsing user data:', e);
-                    }
-                }
-                return false;
-            }
-            
-            // Try to update username
-            if (!updateUsername()) {
-                console.warn('Username element not found, will retry...');
-                setTimeout(updateUsername, 300);
+            // Initialize username display
+            const userEl = document.getElementById('username');
+            if (userEl) {
+                userEl.textContent = 'Admin';
             }
             
             // Initialize applications list with retry logic
@@ -1010,60 +1014,19 @@
             console.log('Dashboard initialization complete');
         }
         
-        // Add logout functionality
-        function setupLogoutButton() {
-            const logoutBtn = document.getElementById('logoutBtn');
-            if (logoutBtn) {
-                logoutBtn.addEventListener('click', () => {
-                    // Clear session
-                    sessionStorage.removeItem('isLoggedIn');
-                    sessionStorage.removeItem('userData');
-                    // Redirect to login
-                    window.location.href = 'login.html';
+        // Setup home button
+        function setupHomeButton() {
+            const homeBtn = document.getElementById('homeBtn');
+            if (homeBtn) {
+                homeBtn.addEventListener('click', () => {
+                    window.location.href = 'index.html';
                 });
             }
         }
 
-        // Check authentication status
-        function checkAuth() {
-            const isLoggedIn = sessionStorage.getItem('isLoggedIn') === 'true';
-            let userData = {};
-            
-            try {
-                const userDataStr = sessionStorage.getItem('userData');
-                userData = userDataStr ? JSON.parse(userDataStr) : {};
-                
-                // Update username in the UI if element exists
-                const usernameEl = document.getElementById('username');
-                if (usernameEl && userData.username) {
-                    usernameEl.textContent = userData.username;
-                }
-                
-                // Check for required user data and valid token
-                const token = sessionStorage.getItem('authToken');
-                if (!isLoggedIn || !userData.id || !token || !token.startsWith('demo-token-')) {
-                    throw new Error('Not authenticated');
-                }
-                
-                return true;
-                
-            } catch (e) {
-                console.error('Authentication error:', e);
-                sessionStorage.clear();
-                window.location.href = 'login.html?error=login_required';
-                return false;
-            }
-        }
-        
         // Initialize the application
         function initApp() {
-            if (!checkAuth()) return;
-            
-            console.log('Admin page initialized');
-            
-            // Initialize the dashboard
-            initializeDashboard();
-            setupLogoutButton();
+            console.log('Admin dashboard initialized');
             
             // Setup event listeners
             const statusFilter = document.getElementById('statusFilter');
@@ -1117,7 +1080,7 @@
             }
         }
         
-        // Start the application when the DOM is fully loaded
+        // Start the application
         if (document.readyState === 'loading') {
             document.addEventListener('DOMContentLoaded', initApp);
         } else {
