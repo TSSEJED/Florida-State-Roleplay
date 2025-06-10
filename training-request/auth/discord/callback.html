@@ -58,41 +58,24 @@
         // For now, we'll just store the code in localStorage and redirect
         // In a production app, you would exchange this code for a token on your backend
 
-        // For demo purposes, we'll simulate a successful login
-        // In a real app, you would exchange the code for a token here
         async function handleAuth() {
             if (error) {
                 console.error('Authentication error:', error);
-                alert('Authentication failed. Please try again.');
-                window.location.href = 'login.html';
+                alert('Authentication failed: ' + error);
+                window.location.href = '/training-request/login.html';
                 return;
             }
 
             try {
-                // In a real app, you would send the code to your backend
-                // const response = await fetch(`${BACKEND_ENDPOINT}/auth/discord`, {
-                //     method: 'POST',
-                //     headers: { 'Content-Type': 'application/json' },
-                //     body: JSON.stringify({ code })
-                // });
-                // const data = await response.json();
+                // In a real app, you would exchange the code for a token here
+                // For now, we'll just store the code and redirect
+                console.log('Auth code received:', code);
                 
-                // For demo, we'll use mock data
-                const mockUser = {
-                    id: '123456789012345678',
-                    username: 'ExampleUser',
-                    discriminator: '1234',
-                    avatar: null,
-                    email: 'user@example.com',
-                    isAdmin: ADMIN_IDS.includes('123456789012345678') // Check if user is admin
-                };
-
-                // Save user data to localStorage
-                localStorage.setItem('user', JSON.stringify(mockUser));
-
-                // Redirect based on admin status
-                const redirectPath = mockUser.isAdmin ? '../admin.html' : '../index.html';
-                window.location.href = redirectPath;
+                // Store the code in session storage
+                sessionStorage.setItem('discord_auth_code', code);
+                
+                // Redirect to the main app
+                window.location.href = '/training-request/index.html';
             } catch (err) {
                 console.error('Authentication failed:', err);
                 alert('Authentication failed. Please try again.');
