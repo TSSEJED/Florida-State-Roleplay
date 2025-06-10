@@ -1,8 +1,6 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <!-- Include session manager -->
-    <script src="js/session.js"></script>
     <script>
         // Simple welcome message
         document.addEventListener('DOMContentLoaded', () => {
@@ -354,39 +352,41 @@
     </div>
 
     <script>
-        // Check authentication
+        // Display user info if available
         document.addEventListener('DOMContentLoaded', () => {
-            const user = JSON.parse(localStorage.getItem('user') || 'null');
-            const userInfoBar = document.getElementById('userInfoBar');
-            const userGreeting = document.getElementById('userGreeting');
-            const userDiscordInfo = document.getElementById('userDiscordInfo');
-            const logoutBtn = document.getElementById('logoutBtn');
+            try {
+                const user = JSON.parse(localStorage.getItem('user') || 'null');
+                const userInfoBar = document.getElementById('userInfoBar');
+                const userGreeting = document.getElementById('userGreeting');
+                const userDiscordInfo = document.getElementById('userDiscordInfo');
+                const logoutBtn = document.getElementById('logoutBtn');
 
-            // Redirect to login if not authenticated
-            if (!user) {
-                window.location.href = 'login.html';
-                return;
-            }
+                if (user && userInfoBar && userGreeting) {
+                    // Update UI with user info if available
+                    if (userGreeting) userGreeting.textContent = `Welcome, ${user.username || 'User'}`;
+                    if (userDiscordInfo) userDiscordInfo.textContent = `${user.username}${user.discriminator ? `#${user.discriminator}` : ''}`;
 
-            // Update UI with user info
-            userGreeting.textContent = `Welcome, ${user.username || 'User'}`;
-            userDiscordInfo.textContent = `${user.username}${user.discriminator ? `#${user.discriminator}` : ''}`;
+                    // Handle logout
+                    if (logoutBtn) {
+                        logoutBtn.addEventListener('click', () => {
+                            localStorage.removeItem('user');
+                            window.location.href = 'login.html';
+                        });
+                    }
 
-            // Handle logout
-            logoutBtn.addEventListener('click', () => {
-                localStorage.removeItem('user');
-                window.location.href = 'login.html';
-            });
-
-            // Show admin link if user is admin
-            if (user.isAdmin) {
-                const adminLink = document.createElement('a');
-                adminLink.href = 'admin.html';
-                adminLink.style.color = 'white';
-                adminLink.style.marginRight = '1rem';
-                adminLink.style.textDecoration = 'none';
-                adminLink.innerHTML = '<i class="fas fa-user-shield"></i> Admin Panel';
-                userInfoBar.insertBefore(adminLink, userInfoBar.lastElementChild);
+                    // Show admin link if user is admin
+                    if (user.isAdmin && userInfoBar) {
+                        const adminLink = document.createElement('a');
+                        adminLink.href = 'admin.html';
+                        adminLink.style.color = 'white';
+                        adminLink.style.marginRight = '1rem';
+                        adminLink.style.textDecoration = 'none';
+                        adminLink.innerHTML = '<i class="fas fa-user-shield"></i> Admin Panel';
+                        userInfoBar.insertBefore(adminLink, userInfoBar.lastElementChild);
+                    }
+                }
+            } catch (e) {
+                console.error('Error loading user data:', e);
             }
         });
         // Notification System
