@@ -188,27 +188,15 @@
                 }
                 
                 try {
-                    // Clear the redirect from localStorage
-                    localStorage.removeItem('redirectAfterLogin');
-                    
-                    // Determine final redirect URL
-                    let finalUrl;
-                    if (isAdmin && (redirectPath === '/admin' || isAdminFlow)) {
-                        console.log('Admin user, redirecting to admin dashboard');
-                        finalUrl = `${baseUrl}/admin`;
-                    } else {
-                        console.log('Regular user, redirecting to:', redirectPath);
-                        finalUrl = `${baseUrl}${redirectPath}`.replace(/([^:]\/)\/+$/, '$1');
-                    }
-                    
-                    console.log('Final redirect URL:', finalUrl);
-                    
                     // Store user data in session storage
                     sessionStorage.setItem('userAuthenticated', 'true');
                     sessionStorage.setItem('userData', JSON.stringify(userData));
                     
-                    // Redirect to final URL
-                    window.location.href = finalUrl;
+                    // Clear any error messages
+                    sessionStorage.removeItem('loginError');
+                    
+                    // Simple redirect to index
+                    window.location.href = '../index.html';
                 } catch (redirectError) {
                     console.error('Error during redirect:', redirectError);
                     showError(`Error during redirect: ${redirectError.message}`);

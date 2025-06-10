@@ -4,32 +4,32 @@
     <!-- Include session manager -->
     <script src="js/session.js"></script>
     <script>
-        // Check if user is authenticated
+        // Simple auth check for index page
         document.addEventListener('DOMContentLoaded', () => {
             const isAuthenticated = sessionStorage.getItem('userAuthenticated');
             const userData = sessionStorage.getItem('userData');
             
-            if (!isAuthenticated || !userData) {
-                // Redirect to login with redirect back to index
-                sessionStorage.setItem('loginError', 'Please log in to access this page');
-                window.location.href = 'login.html?redirect=' + encodeURIComponent(window.location.pathname);
-                return;
-            }
-            
-            try {
-                const user = JSON.parse(userData);
-                console.log('User authenticated:', user.username);
+            // Only redirect if not on login/callback pages
+            if (!window.location.pathname.includes('login') && 
+                !window.location.pathname.includes('callback')) {
                 
-                // Update UI with user info if needed
-                const userInfoElement = document.getElementById('user-info');
-                if (userInfoElement) {
-                    userInfoElement.textContent = `Welcome, ${user.username}`;
+                // If not authenticated, go to login
+                if (!isAuthenticated || !userData) {
+                    sessionStorage.setItem('loginError', 'Please log in to access this page');
+                    window.location.href = 'login.html';
+                    return;
                 }
-            } catch (e) {
-                console.error('Error parsing user data:', e);
-                sessionStorage.removeItem('userAuthenticated');
-                sessionStorage.removeItem('userData');
-                window.location.href = 'login.html';
+                
+                // Update UI if user is logged in
+                try {
+                    const user = JSON.parse(userData);
+                    const userInfoElement = document.getElementById('user-info');
+                    if (userInfoElement) {
+                        userInfoElement.textContent = `Welcome, ${user.username}`;
+                    }
+                } catch (e) {
+                    console.error('Error parsing user data:', e);
+                }
             }
         });
     </script>
