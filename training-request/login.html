@@ -156,7 +156,7 @@
 </head>
 <body>
     <div class="login-container">
-        <img src="https://i.imgur.com/your-logo.png" alt="FSRP Logo" class="logo">
+        <img src="https://fsrp-staff.pages.dev/logo.png" alt="FSRP Logo" class="logo">
         <h1 class="login-title">Welcome Back</h1>
         <p class="login-subtitle">Enter your one-time login code</p>
         
@@ -190,7 +190,7 @@
         </form>
         
         <div class="login-footer">
-            Need help? <a href="https://discord.gg/your-invite-link" target="_blank">Join our Discord</a>
+            Need help? <a href="https://discord.gg/U8vYqxrrDg" target="_blank">Join our Discord</a>
         </div>
     </div>
 
@@ -315,7 +315,7 @@
             // Check if user is already logged in
             const isLoggedIn = sessionStorage.getItem('isLoggedIn') === 'true';
             if (isLoggedIn) {
-                window.location.href = '/training-request/index.html';
+                window.location.href = '/training-request/admin.html';
             } else {
                 // Focus the code input when the page loads
                 if (loginCodeInput) {
