@@ -236,8 +236,8 @@
                             sessionStorage.setItem('isLoggedIn', 'true');
                             sessionStorage.setItem('userData', JSON.stringify(response.user));
                             
-                            // Redirect to dashboard
-                            window.location.href = '/training-request/index.html';
+                            // Redirect to admin page
+                            window.location.href = 'admin.html';
                         } else {
                             showError(response.message || 'Invalid code. Please try again.');
                             loginCodeInput.focus();
@@ -314,8 +314,9 @@
             
             // Check if user is already logged in
             const isLoggedIn = sessionStorage.getItem('isLoggedIn') === 'true';
-            if (isLoggedIn) {
-                window.location.href = '/training-request/admin.html';
+            const userData = sessionStorage.getItem('userData');
+            if (isLoggedIn && userData) {
+                window.location.href = 'admin.html';
             } else {
                 // Focus the code input when the page loads
                 if (loginCodeInput) {

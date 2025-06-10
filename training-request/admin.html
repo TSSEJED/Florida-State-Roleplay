@@ -311,9 +311,22 @@
     </style>
 </head>
 <body>
+    <!-- Authentication Check -->
+    <script>
+        // Check if user is logged in
+        const isLoggedIn = sessionStorage.getItem('isLoggedIn') === 'true';
+        const userData = sessionStorage.getItem('userData');
+        
+        if (!isLoggedIn || !userData) {
+            // Redirect to login if not authenticated
+            window.location.href = 'login.html';
+        }
+    </script>
+    
     <!-- User Info Bar -->
     <div id="userInfoBar" style="background: #2c3e50; color: white; padding: 0.5rem 2rem; display: flex; justify-content: space-between; align-items: center; font-size: 0.9rem;">
-        <div id="userGreeting">Welcome, Admin</div>
+        <div id="userGreeting">Welcome, <span id="username">Admin</span></div>
+        <button id="logoutBtn" style="background: #e74c3c; color: white; border: none; padding: 5px 10px; border-radius: 4px; cursor: pointer;">Logout</button>
         <div style="display: flex; gap: 1rem; align-items: center;">
             <span id="userDiscordInfo"></span>
             <a href="index.html" style="color: white; text-decoration: none;">
@@ -915,6 +928,24 @@
         
         // Initialize the admin dashboard
         document.addEventListener('DOMContentLoaded', () => {
+            // Update username in the greeting
+            try {
+                const userData = JSON.parse(sessionStorage.getItem('userData') || '{}');
+                const username = userData.username || 'Admin';
+                document.getElementById('username').textContent = username;
+            } catch (e) {
+                console.error('Error parsing user data:', e);
+            }
+
+            // Add logout functionality
+            document.getElementById('logoutBtn').addEventListener('click', () => {
+                // Clear session
+                sessionStorage.removeItem('isLoggedIn');
+                sessionStorage.removeItem('userData');
+                // Redirect to login
+                window.location.href = 'login.html';
+            });
+
             // Render applications on page load
             renderApplications();
             
