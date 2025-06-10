@@ -1,6 +1,8 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
+    <!-- Include session manager -->
+    <script src="js/session.js"></script>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Training Application - FSRP</title>
@@ -195,6 +197,16 @@
     </style>
 </head>
 <body>
+    <!-- Include header -->
+    <div id="header-placeholder"></div>
+    <script>
+        // Load header
+        fetch('components/header.html')
+            .then(response => response.text())
+            .then(html => {
+                document.getElementById('header-placeholder').innerHTML = html;
+            });
+    </script>
     <!-- User Info Bar -->
     <div id="userInfoBar" style="background: #2c3e50; color: white; padding: 0.5rem 2rem; display: flex; justify-content: space-between; align-items: center; font-size: 0.9rem;">
         <div id="userGreeting">Welcome, Guest</div>

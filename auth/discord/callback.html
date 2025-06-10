@@ -1,6 +1,7 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
+    <script src="https://cdn.jsdelivr.net/npm/js-cookie@3.0.5/dist/js.cookie.min.js"></script>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Authenticating... - FSRP</title>
@@ -88,8 +89,16 @@
                 // Store the code in session storage
                 sessionStorage.setItem('discord_auth_code', code);
                 
+                // Set a session expiration (8 hours from now)
+                const expires = new Date();
+                expires.setHours(expires.getHours() + 8);
+                document.cookie = `fsrp_session=active; expires=${expires.toUTCString()}; path=/; SameSite=Lax`;
+                
                 // Get the intended destination from sessionStorage
                 const redirectTo = sessionStorage.getItem('redirectAfterLogin') || 'index.html';
+                
+                // Clear the redirect after login to prevent loops
+                sessionStorage.removeItem('redirectAfterLogin');
                 
                 // If user is not an admin but trying to access admin area, redirect to index
                 if (redirectTo.includes('admin') && !isAdmin) {

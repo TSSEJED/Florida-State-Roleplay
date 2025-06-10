@@ -1,0 +1,72 @@
+<header>
+    <nav>
+        <div class="logo">
+            <a href="/training-request/index.html">FSRP Training</a>
+        </div>
+        <div class="nav-links">
+            <a href="/training-request/index.html">Home</a>
+            <a href="/training-request/admin.html" id="adminLink" style="display: none;">Admin</a>
+            <a href="#" id="logoutBtn">Logout</a>
+        </div>
+    </nav>
+</header>
+
+<style>
+    header {
+        background-color: #2c2f33;
+        color: white;
+        padding: 1rem 2rem;
+        box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+    }
+    
+    nav {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        max-width: 1200px;
+        margin: 0 auto;
+    }
+    
+    .logo a {
+        color: white;
+        font-size: 1.5rem;
+        font-weight: bold;
+        text-decoration: none;
+    }
+    
+    .nav-links a {
+        color: white;
+        margin-left: 1.5rem;
+        text-decoration: none;
+        transition: color 0.2s;
+    }
+    
+    .nav-links a:hover {
+        color: #7289da;
+    }
+    
+    #logoutBtn {
+        cursor: pointer;
+    }
+</style>
+
+<script>
+    document.addEventListener('DOMContentLoaded', () => {
+        // Show admin link if user is admin
+        // In a real app, you would check the user's roles here
+        const isAdmin = false; // Replace with actual admin check
+        if (isAdmin) {
+            document.getElementById('adminLink').style.display = 'inline-block';
+        }
+        
+        // Handle logout
+        document.getElementById('logoutBtn').addEventListener('click', (e) => {
+            e.preventDefault();
+            if (window.sessionManager) {
+                window.sessionManager.logout();
+            } else {
+                window.location.href = '/training-request/logout.html';
+            }
+        });
+    });
+</script>
