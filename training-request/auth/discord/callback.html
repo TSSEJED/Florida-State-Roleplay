@@ -191,29 +191,29 @@
                     // Store user data in session storage
                     sessionStorage.setItem('userData', JSON.stringify(userData));
                     
-                    // Get the redirect URL from session storage (set by login page)
-                    let redirectAfterLogin = sessionStorage.getItem('redirectAfterLogin');
+                    // Get the intended redirect URL
+                    let redirectPath = '/index.html';
+                    const storedPath = sessionStorage.getItem('redirectAfterLogin') || localStorage.getItem('redirectAfterLogin');
                     
-                    // Clear the redirect from session storage
+                    // Clean up stored paths
                     sessionStorage.removeItem('redirectAfterLogin');
+                    localStorage.removeItem('redirectAfterLogin');
                     
-                    // If no specific redirect, use the stored path from localStorage
-                    if (!redirectAfterLogin) {
-                        redirectAfterLogin = localStorage.getItem('redirectAfterLogin') || '/index';
-                        localStorage.removeItem('redirectAfterLogin');
+                    // Determine the correct redirect path
+                    if (storedPath) {
+                        // Clean up the path
+                        redirectPath = storedPath.startsWith('/') ? storedPath : `/${storedPath}`;
+                        // Ensure it has .html extension
+                        if (!redirectPath.endsWith('.html')) {
+                            redirectPath += '.html';
+                        }
                     }
                     
-                    // Ensure the redirect URL is valid
-                    if (!redirectAfterLogin.startsWith('/')) {
-                        redirectAfterLogin = '/' + redirectAfterLogin;
-                    }
-                    
-                    // Build the full redirect URL
+                    // Construct the full URL
                     const baseUrl = 'https://florida-state-roleplay.pages.dev';
-                    let redirectUrl = baseUrl + redirectAfterLogin + (redirectAfterLogin.endsWith('.html') ? '' : '.html');
+                    const redirectUrl = `${baseUrl}${redirectPath}`;
                     
-                    console.log('Redirecting to:', redirectUrl);
-                    console.log('Redirecting to:', redirectUrl);
+                    console.log('Final redirect URL:', redirectUrl);
                     window.location.href = redirectUrl;
                 } catch (redirectError) {
                     console.error('Error during redirect:', redirectError);
