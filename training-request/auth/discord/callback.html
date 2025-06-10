@@ -80,90 +80,71 @@
             
             // Exchange the authorization code for an access token
             try {
-                const response = await fetch('https://florida-state-roleplay.pages.dev/api/auth/discord/callback', {
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json',
-                    },
-                    body: JSON.stringify({
-                        code: code,
-                        redirect_uri: 'https://florida-state-roleplay.pages.dev/training-request/auth/discord/callback'
-                    })
-                });
-                
-                if (!response.ok) {
-                    const error = await response.json();
-                    throw new Error(error.message || 'Failed to authenticate with Discord');
-                }
-                
-                const { access_token, token_type, expires_in, user } = await response.json();
-                
-                // Store the token and user data
-                sessionStorage.setItem('discord_token', access_token);
-                sessionStorage.setItem('token_type', token_type);
-                sessionStorage.setItem('token_expires', new Date().getTime() + (expires_in * 1000));
-                sessionStorage.setItem('user', JSON.stringify(user));
-                
-                // Check if this is an admin flow
-                if (isAdminFlow) {
-                    const adminPin = localStorage.getItem('adminPin');
-                    if (adminPin === '9966') { // This should be verified server-side in a real app
-                        // Redirect to admin page
-                        window.location.href = 'admin.html';
-                        return;
-                    } else {
-                        showError('Invalid admin PIN');
-                        localStorage.removeItem('isAdminFlow');
-                        setTimeout(() => window.location.href = 'login.html', 3000);
-                        return;
-                    }
-                }
-                
-                // Redirect to the intended page
-                window.location.href = redirectTo;
-                
-            } catch (err) {
-                console.error('Error fetching user data:', err);
-                showError('Failed to authenticate. Please try again.');
-            }
-
-            try {
                 // Exchange the code for a token
                 const response = await fetch('/api/auth/discord/callback', {
                     method: 'POST',
                     headers: {
                         'Content-Type': 'application/json',
                     },
-                    body: JSON.stringify({ code })
+                    body: JSON.stringify({ 
+                        code: code,
+                        redirect_uri: window.location.origin + '/training-request/auth/discord/callback'
+                    })
                 });
 
-                const data = await response.json();
-
                 if (!response.ok) {
-                    throw new Error(data.message || 'Authentication failed');
+                    const errorData = await response.text();
+                    console.error('API Error Response:', errorData);
+                    throw new Error('Failed to authenticate with the server');
+                }
+
+                const data = await response.json().catch(err => {
+                    console.error('JSON Parse Error:', err);
+                    throw new Error('Invalid response from server');
+                });
+
+                if (!data || !data.user) {
+                    throw new Error('Invalid user data received');
                 }
 
                 // Store user data and token
                 localStorage.setItem('user', JSON.stringify(data.user));
-                localStorage.setItem('token', data.token);
+                if (data.token) {
+                    localStorage.setItem('token', data.token);
+                }
                 
-                // Check if user is an admin (you'll need to implement this check)
+                // Check if user is an admin based on roles
                 const isAdmin = data.user.roles && 
-                    data.user.roles.some(role => ['Admin', 'Staff Manager'].includes(role));
+                    Array.isArray(data.user.roles) && 
+                    data.user.roles.some(role => ['Admin', 'Staff Manager', 'Staff'].includes(role));
                 
-                // Redirect based on user role
-                if (isAdmin && redirectTo.includes('admin')) {
-                    window.location.href = 'admin.html';
-                } else if (isAdmin) {
-                    // If admin but not going to admin page, clear the redirect
-                    window.location.href = redirectTo || 'index.html';
-                } else {
-                    // Regular user - ensure they don't access admin pages
-                    if (redirectTo.includes('admin')) {
-                        window.location.href = 'index.html';
+                console.log('User roles:', data.user.roles, 'Is admin:', isAdmin);
+                
+                // Determine the base URL
+                const baseUrl = window.location.origin + '/training-request';
+                console.log('Base URL:', baseUrl);
+                
+                // Handle admin flow (from loginadmin.html)
+                if (isAdminFlow) {
+                    console.log('Admin flow detected, checking PIN');
+                    const adminPin = localStorage.getItem('adminPin');
+                    if (adminPin === '9966') { // This should be verified server-side in a real app
+                        console.log('Valid admin PIN, redirecting to admin dashboard');
+                        window.location.href = `${baseUrl}/admin`;
+                        return;
                     } else {
-                        window.location.href = redirectTo || 'index.html';
+                        console.log('Invalid admin PIN');
+                        throw new Error('Invalid admin credentials');
                     }
+                }
+                
+                // For regular login flow, redirect based on user role
+                if (isAdmin) {
+                    console.log('Admin user detected, redirecting to admin dashboard');
+                    window.location.href = `${baseUrl}/admin`;
+                } else {
+                    console.log('Regular user, redirecting to index');
+                    window.location.href = `${baseUrl}/index`;
                 }
 
             } catch (err) {
