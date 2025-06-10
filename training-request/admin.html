@@ -317,18 +317,18 @@
             <h1>Training Applications</h1>
             <div class="admin-controls">
                 <div class="filters">
-                    <div class="form-group">
+                    <div class="filter-group">
                         <label for="statusFilter">Status:</label>
-                        <select id="statusFilter" class="form-control">
+                        <select id="statusFilter">
                             <option value="all">All Applications</option>
                             <option value="pending">Pending</option>
                             <option value="approved">Approved</option>
                             <option value="denied">Denied</option>
                         </select>
                     </div>
-                    <div class="form-group">
+                    <div class="filter-group">
                         <label for="searchInput">Search:</label>
-                        <input type="text" id="searchInput" class="form-control" placeholder="Search applications...">
+                        <input type="text" id="searchInput" placeholder="Search applications...">
                     </div>
                 </div>
                 <button id="logoutBtn" class="btn btn-secondary">
@@ -393,9 +393,6 @@
             <a href="index.html" style="color: white; text-decoration: none;">
                 <i class="fas fa-home"></i> Home
             </a>
-            <button id="logoutBtn" style="background: #e74c3c; color: white; border: none; padding: 0.5rem 1rem; border-radius: 4px; cursor: pointer; font-size: 0.9rem; display: flex; align-items: center; gap: 0.5rem;">
-                <i class="fas fa-sign-out-alt"></i> Logout
-            </button>
         </div>
     </div>
     <div class="admin-container">
@@ -1140,21 +1137,34 @@
             }
             
             // Load and render applications
-            try {
-                const apps = JSON.parse(localStorage.getItem('trainingApplications') || '[]');
-                if (apps.length > 0) {
-                    renderApplications();
-                } else {
-                    document.getElementById('applicationsList').innerHTML = `
-                        <div class="empty-state">
-                            <i class="fas fa-inbox"></i>
-                            <h3>No applications found</h3>
-                            <p>Submitted training applications will appear here.</p>
-                        </div>`;
+            function loadAndRenderApplications() {
+                try {
+                    const appsList = document.getElementById('applicationsList');
+                    if (!appsList) {
+                        console.error('Applications list container not found');
+                        return;
+                    }
+                    
+                    const apps = JSON.parse(localStorage.getItem('trainingApplications') || '[]');
+                    if (apps.length > 0) {
+                        renderApplications();
+                    } else {
+                        appsList.innerHTML = `
+                            <div class="empty-state">
+                                <i class="fas fa-inbox"></i>
+                                <h3>No applications found</h3>
+                                <p>Submitted training applications will appear here.</p>
+                            </div>`;
+                    }
+                } catch (e) {
+                    console.error('Error loading applications:', e);
                 }
-            } catch (e) {
-                console.error('Error loading applications:', e);
             }
+            
+            // Initialize the dashboard
+            initializeDashboard();
+            setupLogoutButton();
+            loadAndRenderApplications();
         });
     </script>
 </body>
