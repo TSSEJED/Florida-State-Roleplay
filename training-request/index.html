@@ -1,6 +1,9 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>FSRP Training Application</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
     <style>
         :root {
@@ -49,8 +52,8 @@
             background: var(--white);
             border-radius: 10px;
             box-shadow: var(--shadow);
-            padding: 30px;
-            margin-bottom: 30px;
+            padding: 25px;
+            margin-bottom: 25px;
         }
         
         .form-group {
@@ -60,24 +63,26 @@
         label {
             display: block;
             margin-bottom: 8px;
-            font-weight: 600;
-            color: var(--primary);
+            font-weight: 500;
+            color: var(--text);
         }
         
         input[type="text"],
         input[type="email"],
+        input[type="number"],
         select,
         textarea {
             width: 100%;
             padding: 12px 15px;
             border: 1px solid var(--border);
             border-radius: 6px;
-            font-size: 1rem;
+            font-size: 16px;
             transition: border-color 0.3s;
         }
         
         input[type="text"]:focus,
         input[type="email"]:focus,
+        input[type="number"]:focus,
         select:focus,
         textarea:focus {
             outline: none;
@@ -85,51 +90,47 @@
             box-shadow: 0 0 0 3px rgba(74, 111, 165, 0.2);
         }
         
-        textarea {
-            min-height: 120px;
-            resize: vertical;
-        }
-        
         .btn {
-            display: inline-block;
             background: var(--primary);
             color: white;
-            padding: 12px 30px;
             border: none;
+            padding: 12px 25px;
             border-radius: 6px;
-            font-size: 1rem;
-            font-weight: 600;
             cursor: pointer;
-            transition: all 0.3s ease;
-            text-align: center;
+            font-size: 16px;
+            font-weight: 500;
+            transition: background-color 0.3s;
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
         }
         
         .btn:hover {
             background: var(--primary-dark);
-            transform: translateY(-2px);
-            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
         }
         
-        .btn-block {
-            display: block;
-            width: 100%;
+        .btn i {
+            font-size: 14px;
         }
         
-        @media (max-width: 768px) {
-            .container {
-                padding: 10px;
-            }
-            
-            .card {
-                padding: 20px;
-            }
-            
-            h1 {
-                font-size: 1.5rem;
-            }
+        .training-questions {
+            margin-top: 20px;
+            border-top: 1px solid var(--border);
+            padding-top: 20px;
         }
-    </style>
-        /* Custom Notification */
+        
+        .training-questions h3 {
+            margin-bottom: 15px;
+            color: var(--primary);
+        }
+        
+        textarea {
+            min-height: 120px;
+            resize: vertical;
+            font-family: inherit;
+        }
+
+        /* Notification Styles */
         .notification {
             position: fixed;
             top: 20px;
@@ -172,7 +173,7 @@
             font-size: 20px;
         }
 
-        /* Custom Modal */
+        /* Modal Styles */
         .modal-overlay {
             position: fixed;
             top: 0;
@@ -200,16 +201,11 @@
             padding: 25px;
             border-radius: 12px;
             width: 90%;
-            max-width: 450px;
+            max-width: 500px;
             box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
             transform: translateY(20px);
             transition: transform 0.3s ease;
             position: relative;
-            border: 1px solid rgba(0, 0, 0, 0.1);
-        }
-
-        .modal-overlay.active .modal {
-            transform: translateY(0);
         }
 
         .modal-close {
@@ -221,24 +217,12 @@
             font-size: 20px;
             cursor: pointer;
             color: #666;
-            transition: color 0.2s;
-        }
-
-        .modal-close:hover {
-            color: #333;
         }
 
         .modal-title {
             margin-top: 0;
             color: #2c3e50;
-            font-size: 1.5em;
-            margin-bottom: 15px;
-        }
-
-        .modal-content {
-            margin: 15px 0;
-            color: #34495e;
-            line-height: 1.5;
+            margin-bottom: 20px;
         }
 
         .modal-actions {
@@ -248,72 +232,21 @@
             margin-top: 20px;
         }
 
-        .btn {
-            padding: 8px 20px;
-            border: none;
-            border-radius: 6px;
-            font-weight: 500;
-            cursor: pointer;
-            transition: all 0.2s;
+        @media (max-width: 768px) {
+            .container {
+                padding: 10px;
+            }
+            
+            .card {
+                padding: 15px;
+            }
+            
+            .modal {
+                width: 95%;
+                padding: 20px 15px;
+            }
         }
-
-        .btn-primary {
-            background: #3498db;
-            color: white;
-        }
-
-        .btn-primary:hover {
-            background: #2980b9;
-        }
-
-        .btn-outline {
-            background: transparent;
-            border: 1px solid #ddd;
-            color: #7f8c8d;
-        }
-
-        .btn-outline:hover {
-            background: #f5f6fa;
-            border-color: #ccc;
-        }
-
-        /* Form Elements */
-        .form-group {
-            margin-bottom: 20px;
-        }
-
-        .form-group label {
-            display: block;
-            margin-bottom: 8px;
-            font-weight: 500;
-            color: #2c3e50;
-        }
-
-        .form-control {
-            width: 100%;
-            padding: 10px 15px;
-            border: 1px solid #ddd;
-            border-radius: 6px;
-            font-size: 16px;
-            transition: border-color 0.3s;
-        }
-
-        .form-control:focus {
-            outline: none;
-            border-color: #3498db;
-            box-shadow: 0 0 0 3px rgba(52, 152, 219, 0.2);
-        }
-
-        /* Animations */
-        @keyframes slideIn {
-            from { transform: translateX(100%); }
-            to { transform: translateX(0); }
-        }
-
-        @keyframes fadeIn {
-            from { opacity: 0; }
-            to { opacity: 1; }
-        }
+    </style>
 </head>
 <body>
     <div class="container">
@@ -321,7 +254,7 @@
             <h1>FSRP Training Application</h1>
             <p>Submit your training request below</p>
         </header>
-        
+
         <div class="card">
             <form id="trainingForm" class="training-form">
                 <div class="form-group">
@@ -354,11 +287,13 @@
                         <textarea id="q2" name="q2" required></textarea>
                     </div>
 
+
                     <div class="form-group">
                         <label for="q3" class="required">If a trainee keeps making the same mistake, how would you address it?</label>
                         <textarea id="q3" name="q3" required></textarea>
                     </div>
                 </div>
+
 
                 <div class="form-section">
                     <h2>LEADERSHIP & COMMUNICATION</h2>
@@ -373,11 +308,13 @@
                         <textarea id="q5" name="q5" required></textarea>
                     </div>
 
+
                     <div class="form-group">
                         <label for="q6" class="required">Can you maintain a calm and professional demeanor, even when dealing with difficult individuals?</label>
                         <textarea id="q6" name="q6" required></textarea>
                     </div>
                 </div>
+
 
                 <div class="form-section">
                     <h2>TESTING & EVALUATION</h2>
@@ -393,6 +330,7 @@
                     </div>
                 </div>
 
+
                 <div class="form-section">
                     <h2>RELIABILITY</h2>
                     
@@ -402,75 +340,57 @@
                     </div>
 
                     <div class="form-group">
-                        <label for="q10" class="required">Would you be able to keep accurate records of who has been trained and who has not?</label>
+                        <label for="q10" class="required">How would you ensure you're available for your trainees when they need help?</label>
                         <textarea id="q10" name="q10" required></textarea>
                     </div>
                 </div>
 
-                <button type="submit" class="submit-btn">Submit Application</button>
+                <button type="submit" class="btn">
+                    <i class="fas fa-paper-plane"></i> Submit Application
+                </button>
             </form>
         </div>
 
-        <!-- Notification -->
-        <div id="notification" class="notification" style="display: none;">
+        <!-- Notification Element -->
+        <div id="notification" class="notification">
             <i class="fas fa-check-circle"></i>
             <span class="notification-message"></span>
         </div>
-
-        <script>
-            // Form submission handler
-            document.addEventListener('DOMContentLoaded', function() {
-                const form = document.getElementById('trainingForm');
-                if (!form) return;
-                
-                form.addEventListener('submit', async function(e) {
-                    e.preventDefault();
-                    
-                    try {
-                        // Show loading state
-                        const submitBtn = form.querySelector('button[type="submit"]');
-                        const originalText = submitBtn.innerHTML;
-                        submitBtn.disabled = true;
-                        submitBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Submitting...';
-                        
-                        // Simulate API call
-                        await new Promise(resolve => setTimeout(resolve, 1500));
-                        
-                        // Show success message
-                        const notification = document.getElementById('notification');
-                        notification.className = 'notification success';
-                        notification.querySelector('i').className = 'fas fa-check-circle';
-                        notification.querySelector('.notification-message').textContent = 'Training request submitted successfully!';
-                        notification.style.display = 'flex';
-                        
-                        // Hide notification after 5 seconds
-                        setTimeout(() => {
-                            notification.style.display = 'none';
-                        }, 5000);
-                        
-                        // Reset form
-                        form.reset();
-                    } catch (error) {
-                        console.error('Error submitting form:', error);
-                        const notification = document.getElementById('notification');
-                        notification.className = 'notification error';
-                        notification.querySelector('i').className = 'fas fa-exclamation-circle';
-                        notification.querySelector('.notification-message').textContent = 'Failed to submit form. Please try again.';
-                        notification.style.display = 'flex';
-                        
-                        setTimeout(() => {
-                            notification.style.display = 'none';
-                        }, 5000);
-                    } finally {
-                        // Reset button state
-                        const submitBtn = form.querySelector('button[type="submit"]');
-                        if (submitBtn) {
-                            submitBtn.disabled = false;
-                            submitBtn.innerHTML = 'Submit Application';
-                        }
-                });
-            });
-        </script>
     </div>
+
+    <script>
+        // Show notification function
+        function showNotification(message, type = 'success') {
+            const notification = document.getElementById('notification');
+            const icon = notification.querySelector('i');
+            const messageEl = notification.querySelector('.notification-message');
+            
+            // Set message and type
+            messageEl.textContent = message;
+            
+            // Update icon and styling based on type
+            notification.className = 'notification';
+            notification.classList.add(type);
+            
+            // Update icon
+            if (type === 'success') {
+                icon.className = 'fas fa-check-circle';
+            } else if (type === 'error') {
+                icon.className = 'fas fa-exclamation-circle';
+            } else if (type === 'warning') {
+                icon.className = 'fas fa-exclamation-triangle';
+            }
+            
+            // Show notification
+            notification.style.display = 'flex';
+            setTimeout(() => notification.classList.add('show'), 10);
+            
+            // Hide after delay
+            setTimeout(() => {
+                notification.classList.remove('show');
+                setTimeout(() => notification.style.display = 'none', 300);
+            }, 5000);
+        }
+    </script>
 </body>
 </html>
