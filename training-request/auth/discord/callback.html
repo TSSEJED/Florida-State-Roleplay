@@ -179,7 +179,7 @@
                     const adminPin = localStorage.getItem('adminPin');
                     if (adminPin === '9966') {
                         console.log('Valid admin PIN, redirecting to admin dashboard');
-                        window.location.href = `${baseUrl}/admin`;
+                        window.location.href = baseUrl + '/admin.html';
                         return;
                     } else {
                         console.log('Invalid admin PIN');
@@ -192,11 +192,23 @@
                     sessionStorage.setItem('userAuthenticated', 'true');
                     sessionStorage.setItem('userData', JSON.stringify(userData));
                     
-                    // Clear any error messages
-                    sessionStorage.removeItem('loginError');
+                    // Get the redirect URL from localStorage or use default
+                    let redirectUrl = localStorage.getItem('redirectAfterLogin');
                     
-                    // Simple redirect to index
-                    window.location.href = '../index.html';
+                    // If no redirect URL is set, use the default index page
+                    if (!redirectUrl) {
+                        const basePath = window.location.origin + '/training-request';
+                        redirectUrl = basePath + '/index.html';
+                    }
+                    
+                    console.log('Redirecting to:', redirectUrl);
+                    
+                    // Clear any error messages and redirect URL from storage
+                    sessionStorage.removeItem('loginError');
+                    localStorage.removeItem('redirectAfterLogin');
+                    
+                    // Perform the redirect
+                    window.location.href = redirectUrl;
                 } catch (redirectError) {
                     console.error('Error during redirect:', redirectError);
                     showError(`Error during redirect: ${redirectError.message}`);
