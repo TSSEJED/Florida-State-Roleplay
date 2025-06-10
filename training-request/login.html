@@ -70,7 +70,13 @@
         </div>
     </div>
 
-    <script src="js/config.js"></script>
+    <script>
+        // Inline config since the file isn't found
+        window.appConfig = {
+            DISCORD_CLIENT_ID: '1381993589663338637',
+            DISCORD_REDIRECT_URI: 'https://florida-state-roleplay.pages.dev/auth/discord/callback'
+        };
+    </script>
     <script>
         // Discord OAuth2 Configuration from config
         const DISCORD_CLIENT_ID = window.appConfig.DISCORD_CLIENT_ID;
@@ -102,7 +108,8 @@
             // Set up Discord login
             document.getElementById('discordLogin').addEventListener('click', () => {
                 const clientId = '1381993589663338637'; // Your Discord Client ID
-                const redirectUri = encodeURIComponent('https://florida-state-roleplay.pages.dev/training-request/auth/discord/callback.html');
+                // Make sure this matches EXACTLY what's in Discord Developer Portal
+                const redirectUri = encodeURIComponent('https://florida-state-roleplay.pages.dev/auth/discord/callback');
                 const scope = 'identify email guilds';
                 const authUrl = `https://discord.com/api/oauth2/authorize?client_id=${clientId}&redirect_uri=${redirectUri}&response_type=code&scope=${encodeURIComponent(scope)}`;
                 window.location.href = authUrl;
