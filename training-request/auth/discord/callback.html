@@ -78,19 +78,53 @@
             console.log('Callback page loaded');
             console.log('URL hash:', window.location.hash);
             console.log('URL search:', window.location.search);
-            // Handle the OAuth2 implicit flow
+            // Handle the OAuth2 PKCE flow
             async function handleAuth() {
                 try {
-                    // Get the access token from the URL hash
-                    const hash = window.location.hash.substring(1);
-                    const params = new URLSearchParams(hash);
-                    const accessToken = params.get('access_token');
+                    // Get the authorization code from the URL
+                    const params = new URLSearchParams(window.location.search);
+                    const code = params.get('code');
+                    const error = params.get('error');
                     
-                    if (!accessToken) {
-                        throw new Error('No access token found in the URL hash');
+                    if (error) {
+                        throw new Error(`OAuth error: ${error}`);
                     }
                     
-                    console.log('Access token received, fetching user data...');
+                    if (!code) {
+                        throw new Error('No authorization code found in the URL');
+                    }
+                    
+                    console.log('Authorization code received, exchanging for access token...');
+                    
+                    // Get the code verifier from session storage
+                    const codeVerifier = sessionStorage.getItem('code_verifier');
+                    if (!codeVerifier) {
+                        throw new Error('No code verifier found in session storage');
+                    }
+                    
+                    // Exchange the authorization code for an access token
+                    const tokenResponse = await fetch('https://discord.com/api/oauth2/token', {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/x-www-form-urlencoded',
+                        },
+                        body: new URLSearchParams({
+                            client_id: '1381993589663338637',
+                            client_secret: '', // Not needed for public clients
+                            grant_type: 'authorization_code',
+                            code: code,
+                            redirect_uri: 'https://florida-state-roleplay.pages.dev/training-request/auth/discord/callback.html',
+                            code_verifier: codeVerifier
+                        })
+                    });
+                    
+                    if (!tokenResponse.ok) {
+                        const errorData = await tokenResponse.json();
+                        throw new Error(`Failed to get access token: ${JSON.stringify(errorData)}`);
+                    }
+                    
+                    const tokenData = await tokenResponse.json();
+                    const accessToken = tokenData.access_token;
                     
                     // Store the access token
                     sessionStorage.setItem('discord_token', accessToken);
@@ -118,36 +152,10 @@
                     
                     // Store user data in session storage
                     sessionStorage.setItem('userData', JSON.stringify(userData));
-            
-            try {
-                // Store the access token
-                localStorage.setItem('discord_token', accessToken);
-                localStorage.setItem('token_type', tokenType);
-                
-                // Fetch user data from Discord API
-                const userResponse = await fetch('https://discord.com/api/users/@me', {
-                    headers: {
-                        'Authorization': `${tokenType} ${accessToken}`
-                    }
-                });
-
-                if (!userResponse.ok) {
-                    throw new Error('Failed to fetch user data from Discord');
-                }
-
-                const user = await userResponse.json();
-                
-                // Fetch user guilds to check for admin roles
-                const guildsResponse = await fetch('https://discord.com/api/users/@me/guilds', {
-                    headers: {
-                        'Authorization': `${tokenType} ${accessToken}`
-                    }
-                });
-                
-                let isAdmin = false;
-                if (guildsResponse.ok) {
-                    const guilds = await guildsResponse.json();
+                    sessionStorage.setItem('userGuilds', JSON.stringify(guilds));
+                    
                     // Check if user is admin in any guild
+                    let isAdmin = false;
                     // Note: This is a simplified check. In a real app, you'd want to check specific roles
                     isAdmin = guilds.some(guild => guild.permissions & 0x8); // 0x8 is ADMINISTRATOR permission
                 }

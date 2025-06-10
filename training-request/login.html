@@ -106,11 +106,33 @@
         </div>
     </div>
     <script>
-        // Discord OAuth2 Configuration
+        // Discord OAuth2 Configuration with PKCE
         const DISCORD_CLIENT_ID = '1381993589663338637';
         const DISCORD_REDIRECT_URI = 'https://florida-state-roleplay.pages.dev/training-request/auth/discord/callback.html';
         const DISCORD_SCOPE = 'identify email guilds';
-        const RESPONSE_TYPE = 'token'; // Added missing constant
+        const RESPONSE_TYPE = 'code';
+        const CODE_CHALLENGE_METHOD = 'S256';
+        
+        // Generate a secure random string for the code verifier
+        function generateRandomString(length) {
+            const array = new Uint8Array(length);
+            window.crypto.getRandomValues(array);
+            return Array.from(array, byte => byte.toString(16).padStart(2, '0')).join('');
+        }
+        
+        // Generate a code verifier and challenge
+        async function generatePKCECodes() {
+            const codeVerifier = generateRandomString(128);
+            const encoder = new TextEncoder();
+            const data = encoder.encode(codeVerifier);
+            const hash = await window.crypto.subtle.digest('SHA-256', data);
+            const codeChallenge = btoa(String.fromCharCode(...new Uint8Array(hash)))
+                .replace(/\+/g, '-')
+                .replace(/\//g, '_')
+                .replace(/=+$/, '');
+                
+            return { codeVerifier, codeChallenge };
+        }
 
         // Initialize the login page
         document.addEventListener('DOMContentLoaded', () => {
@@ -139,7 +161,7 @@
 
             // Set up Discord login button
             if (loginBtn) {
-                loginBtn.addEventListener('click', () => {
+                loginBtn.addEventListener('click', async () => {
                     // Clear any existing storage
                     sessionStorage.clear();
                     localStorage.clear();
@@ -151,12 +173,24 @@
                     console.log('Current URL:', window.location.href);
                     console.log('Session Storage:', JSON.stringify(sessionStorage, null, 2));
                     
-                    // Build the Discord OAuth2 URL with implicit grant flow
+                    // Generate PKCE codes and build the authorization URL
+                    const { codeVerifier, codeChallenge } = await generatePKCECodes();
+                    
+                    // Store the code verifier for later use
+                    sessionStorage.setItem('code_verifier', codeVerifier);
+                    
+                    // Set admin flow flag if coming from admin page
+                    const isAdminFlow = window.location.href.includes('admin.html');
+                    sessionStorage.setItem('isAdminFlow', isAdminFlow);
+                    
+                    // Build the authorization URL
                     const params = new URLSearchParams({
                         client_id: DISCORD_CLIENT_ID,
                         redirect_uri: DISCORD_REDIRECT_URI,
                         response_type: RESPONSE_TYPE,
-                        scope: DISCORD_SCOPE
+                        scope: DISCORD_SCOPE,
+                        code_challenge: codeChallenge,
+                        code_challenge_method: CODE_CHALLENGE_METHOD
                     });
                     
                     const authUrl = `https://discord.com/oauth2/authorize?${params.toString()}`;
