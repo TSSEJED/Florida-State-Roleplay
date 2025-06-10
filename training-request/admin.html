@@ -354,38 +354,7 @@
         </div>
     </div>
     
-    <!-- Authentication Check -->
-    <script>
-        // Check authentication status
-        (function() {
-            const isLoggedIn = sessionStorage.getItem('isLoggedIn') === 'true';
-            let userData = {};
-            
-            try {
-                const userDataStr = sessionStorage.getItem('userData');
-                userData = userDataStr ? JSON.parse(userDataStr) : {};
-                
-                // Update username in the UI if element exists
-                const usernameEl = document.getElementById('username');
-                if (usernameEl && userData.username) {
-                    usernameEl.textContent = userData.username;
-                }
-            } catch (e) {
-                console.error('Error parsing user data:', e);
-                sessionStorage.clear();
-                window.location.href = 'login.html?error=session_invalid';
-                return;
-            }
-            
-            // Check for required user data and valid token
-            const token = sessionStorage.getItem('authToken');
-            if (!isLoggedIn || !userData.id || !token || !token.startsWith('demo-token-')) {
-                sessionStorage.clear();
-                window.location.href = 'login.html?error=login_required';
-                return;
-            }
-        })();
-    </script>
+
 
     <!-- Application Details Modal -->
     <div id="applicationModal" class="modal">
@@ -1055,33 +1024,63 @@
             }
         }
 
-        // Simple initialization when DOM is ready
-        document.addEventListener('DOMContentLoaded', function() {
-            console.log('Admin page loaded');
+        // Check authentication status
+        function checkAuth() {
+            const isLoggedIn = sessionStorage.getItem('isLoggedIn') === 'true';
+            let userData = {};
             
-            // Initialize the dashboard first
+            try {
+                const userDataStr = sessionStorage.getItem('userData');
+                userData = userDataStr ? JSON.parse(userDataStr) : {};
+                
+                // Update username in the UI if element exists
+                const usernameEl = document.getElementById('username');
+                if (usernameEl && userData.username) {
+                    usernameEl.textContent = userData.username;
+                }
+                
+                // Check for required user data and valid token
+                const token = sessionStorage.getItem('authToken');
+                if (!isLoggedIn || !userData.id || !token || !token.startsWith('demo-token-')) {
+                    throw new Error('Not authenticated');
+                }
+                
+                return true;
+                
+            } catch (e) {
+                console.error('Authentication error:', e);
+                sessionStorage.clear();
+                window.location.href = 'login.html?error=login_required';
+                return false;
+            }
+        }
+        
+        // Initialize the application
+        function initApp() {
+            if (!checkAuth()) return;
+            
+            console.log('Admin page initialized');
+            
+            // Initialize the dashboard
             initializeDashboard();
             setupLogoutButton();
             
-            // Setup status filter
+            // Setup event listeners
             const statusFilter = document.getElementById('statusFilter');
             if (statusFilter) {
                 statusFilter.addEventListener('change', renderApplications);
             }
             
-            // Setup search input
             const searchInput = document.getElementById('searchInput');
             if (searchInput) {
                 searchInput.addEventListener('input', renderApplications);
             }
             
-            // Setup modal close button
             const closeModalBtn = document.querySelector('.close-modal');
             if (closeModalBtn) {
                 closeModalBtn.addEventListener('click', closeModal);
             }
             
-            // Setup modal background click
             const modal = document.getElementById('applicationModal');
             if (modal) {
                 modal.addEventListener('click', function(e) {
@@ -1090,33 +1089,40 @@
             }
             
             // Load and render applications
-            function loadAndRenderApplications() {
-                try {
-                    const appsList = document.getElementById('applicationsList');
-                    if (!appsList) {
-                        console.error('Applications list container not found');
-                        return;
-                    }
-                    
-                    const apps = JSON.parse(localStorage.getItem('trainingApplications') || '[]');
-                    if (apps.length > 0) {
-                        renderApplications();
-                    } else {
-                        appsList.innerHTML = `
-                            <div class="empty-state">
-                                <i class="fas fa-inbox"></i>
-                                <h3>No applications found</h3>
-                                <p>Submitted training applications will appear here.</p>
-                            </div>`;
-                    }
-                } catch (e) {
-                    console.error('Error loading applications:', e);
-                }
-            }
-            
-            // Load and render applications
             loadAndRenderApplications();
-        });
+        }
+        
+        // Load and render applications
+        function loadAndRenderApplications() {
+            try {
+                const appsList = document.getElementById('applicationsList');
+                if (!appsList) {
+                    console.error('Applications list container not found');
+                    return;
+                }
+                
+                const apps = JSON.parse(localStorage.getItem('trainingApplications') || '[]');
+                if (apps.length > 0) {
+                    renderApplications();
+                } else {
+                    appsList.innerHTML = `
+                        <div class="empty-state">
+                            <i class="fas fa-inbox"></i>
+                            <h3>No applications found</h3>
+                            <p>Submitted training applications will appear here.</p>
+                        </div>`;
+                }
+            } catch (e) {
+                console.error('Error loading applications:', e);
+            }
+        }
+        
+        // Start the application when the DOM is fully loaded
+        if (document.readyState === 'loading') {
+            document.addEventListener('DOMContentLoaded', initApp);
+        } else {
+            initApp();
+        }
     </script>
 </body>
 </html>
