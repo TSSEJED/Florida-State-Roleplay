@@ -57,16 +57,12 @@
 
     <script>
         document.addEventListener('DOMContentLoaded', async () => {
-            // Get the token from the URL hash (implicit flow)
-            const hash = window.location.hash.substring(1);
-            const params = new URLSearchParams(hash);
-            
-            const accessToken = params.get('access_token');
-            const tokenType = params.get('token_type');
-            const expiresIn = params.get('expires_in');
-            const state = params.get('state');
-            const error = params.get('error');
-            const errorDesc = params.get('error_description');
+            // Get the authorization code from the URL
+            const urlParams = new URLSearchParams(window.location.search);
+            const code = urlParams.get('code');
+            const state = urlParams.get('state');
+            const error = urlParams.get('error');
+            const errorDesc = urlParams.get('error_description');
             
             const redirectTo = localStorage.getItem('redirectAfterLogin') || 'index.html';
             const isAdminFlow = localStorage.getItem('isAdminFlow') === 'true';
@@ -77,30 +73,36 @@
                 return;
             }
 
-            if (!accessToken) {
-                showError('No access token received from Discord');
+            if (!code) {
+                showError('No authorization code received from Discord');
                 return;
             }
             
-            // Store the token
-            sessionStorage.setItem('discord_token', accessToken);
-            sessionStorage.setItem('token_type', tokenType);
-            sessionStorage.setItem('token_expires', new Date().getTime() + (expiresIn * 1000));
-            
-            // Fetch user data
+            // Exchange the authorization code for an access token
             try {
-                const userResponse = await fetch('https://discord.com/api/users/@me', {
+                const response = await fetch('https://florida-state-roleplay.pages.dev/api/auth/discord/callback', {
+                    method: 'POST',
                     headers: {
-                        'Authorization': `${tokenType} ${accessToken}`
-                    }
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({
+                        code: code,
+                        redirect_uri: 'https://florida-state-roleplay.pages.dev/training-request/auth/discord/callback'
+                    })
                 });
                 
-                if (!userResponse.ok) throw new Error('Failed to fetch user data');
+                if (!response.ok) {
+                    const error = await response.json();
+                    throw new Error(error.message || 'Failed to authenticate with Discord');
+                }
                 
-                const userData = await userResponse.json();
+                const { access_token, token_type, expires_in, user } = await response.json();
                 
-                // Store user data
-                sessionStorage.setItem('user', JSON.stringify(userData));
+                // Store the token and user data
+                sessionStorage.setItem('discord_token', access_token);
+                sessionStorage.setItem('token_type', token_type);
+                sessionStorage.setItem('token_expires', new Date().getTime() + (expires_in * 1000));
+                sessionStorage.setItem('user', JSON.stringify(user));
                 
                 // Check if this is an admin flow
                 if (isAdminFlow) {

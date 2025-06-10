@@ -258,8 +258,8 @@
             const redirectUri = encodeURIComponent('https://florida-state-roleplay.pages.dev/training-request/auth/discord/callback');
             const scopes = encodeURIComponent('identify email guilds');
             
-            // Using response_type=token for implicit grant flow (no backend needed)
-            const authUrl = `https://discord.com/api/oauth2/authorize?client_id=${clientId}&redirect_uri=${redirectUri}&response_type=token&scope=${scopes}&state=${state}&prompt=none`;
+            // Using response_type=code for server-side token exchange
+            const authUrl = `https://discord.com/api/oauth2/authorize?client_id=${clientId}&redirect_uri=${redirectUri}&response_type=code&scope=${scopes}&state=${state}`;
             
             // Redirect to Discord OAuth
             window.location.href = authUrl;
