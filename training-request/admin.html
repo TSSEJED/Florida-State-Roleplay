@@ -4,8 +4,9 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Training Applications - Admin Dashboard</title>
+    <!-- Load Font Awesome first -->
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet" />
     <link rel="stylesheet" href="styles.css">
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
     <style>
         /* Notification Styles */
         .notification {
@@ -326,13 +327,12 @@
     <!-- User Info Bar -->
     <div id="userInfoBar" style="background: #2c3e50; color: white; padding: 0.5rem 2rem; display: flex; justify-content: space-between; align-items: center; font-size: 0.9rem;">
         <div id="userGreeting">Welcome, <span id="username">Admin</span></div>
-        <button id="logoutBtn" style="background: #e74c3c; color: white; border: none; padding: 5px 10px; border-radius: 4px; cursor: pointer;">Logout</button>
         <div style="display: flex; gap: 1rem; align-items: center;">
             <span id="userDiscordInfo"></span>
             <a href="index.html" style="color: white; text-decoration: none;">
                 <i class="fas fa-home"></i> Home
             </a>
-            <button id="logoutBtn" style="background: #e74c3c; color: white; border: none; padding: 0.3rem 0.8rem; border-radius: 4px; cursor: pointer; font-size: 0.8rem;">
+            <button id="logoutBtn" style="background: #e74c3c; color: white; border: none; padding: 0.5rem 1rem; border-radius: 4px; cursor: pointer; font-size: 0.9rem; display: flex; align-items: center; gap: 0.5rem;">
                 <i class="fas fa-sign-out-alt"></i> Logout
             </button>
         </div>
@@ -381,8 +381,7 @@
         <span id="notificationMessage">Notification message</span>
     </div>
 
-    <!-- Load Font Awesome from CDN -->
-    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet" />
+
     <script>
         // Discord Webhook URLs
         const DISCORD_WEBHOOKS = {
@@ -1044,40 +1043,77 @@
             // Setup logout button
             setupLogoutButton();
             
-            // Set up event listeners for filters and close modal button
-            const statusFilter = document.getElementById('statusFilter');
-            const searchInput = document.getElementById('searchInput');
-            const closeModalBtn = document.querySelector('.close-modal');
-            
-            if (statusFilter) {
-                statusFilter.addEventListener('change', renderApplications);
-            } else {
-                console.warn('Status filter element not found');
+            // Function to setup event listeners
+            function setupEventListeners() {
+                // Status filter
+                const statusFilter = document.getElementById('statusFilter');
+                if (statusFilter) {
+                    statusFilter.addEventListener('change', renderApplications);
+                    console.log('Status filter initialized');
+                } else {
+                    console.warn('Status filter element not found');
+                }
+                
+                // Search input
+                const searchInput = document.getElementById('searchInput');
+                if (searchInput) {
+                    searchInput.addEventListener('input', renderApplications);
+                    console.log('Search input initialized');
+                } else {
+                    console.warn('Search input element not found');
+                }
+                
+                // Close modal button
+                const closeModalBtn = document.querySelector('.close-modal');
+                if (closeModalBtn) {
+                    closeModalBtn.addEventListener('click', closeModal);
+                    console.log('Close modal button initialized');
+                } else {
+                    console.warn('Close modal button not found');
+                }
+                
+                // Modal background click handler
+                const modal = document.getElementById('applicationModal');
+                if (modal) {
+                    modal.addEventListener('click', function(e) {
+                        if (e.target === modal) {
+                            closeModal();
+                        }
+                    });
+                }
             }
             
-            if (searchInput) {
-                searchInput.addEventListener('input', renderApplications);
-            } else {
-                console.warn('Search input element not found');
-            }
-            
-            if (closeModalBtn) {
-                closeModalBtn.addEventListener('click', closeModal);
-            } else {
-                console.warn('Close modal button not found');
-            }
+            // Initial setup of event listeners
+            setupEventListeners();
             
             // Check if there are any applications
-            try {
-                const applications = JSON.parse(localStorage.getItem('trainingApplications') || '[]');
-                if (applications.length === 0) {
-                    console.log('No applications found in localStorage');
-                } else {
-                    console.log(`Loaded ${applications.length} applications from localStorage`);
-                    renderApplications(); // Ensure applications are rendered
+            function checkApplications() {
+                try {
+                    const applications = JSON.parse(localStorage.getItem('trainingApplications') || '[]');
+                    if (applications.length === 0) {
+                        console.log('No applications found in localStorage');
+                    } else {
+                        console.log(`Loaded ${applications.length} applications from localStorage`);
+                        renderApplications();
+                    }
+                } catch (e) {
+                    console.error('Error loading applications:', e);
                 }
-            } catch (e) {
-                console.error('Error loading applications:', e);
+            }
+            
+            // Initial check for applications
+            checkApplications();
+            
+            // Retry finding elements if they weren't found initially
+            const requiredElements = ['statusFilter', 'searchInput', 'applicationsList'];
+            const missingElements = requiredElements.filter(id => !document.getElementById(id));
+            
+            if (missingElements.length > 0) {
+                console.warn('Some required elements not found, retrying...', missingElements);
+                setTimeout(() => {
+                    setupEventListeners();
+                    checkApplications();
+                }, 500);
             }
         });
     </script>
