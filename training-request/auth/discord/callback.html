@@ -57,15 +57,20 @@
 
     <script>
         document.addEventListener('DOMContentLoaded', async () => {
-            // Get the authorization code from the URL
-            const urlParams = new URLSearchParams(window.location.search);
-            const code = urlParams.get('code');
-            const state = urlParams.get('state');
-            const error = urlParams.get('error');
-            const errorDesc = urlParams.get('error_description');
+            // Get the token from the URL hash
+            const hash = window.location.hash.substring(1);
+            const params = new URLSearchParams(hash);
+            
+            const accessToken = params.get('access_token');
+            const tokenType = params.get('token_type');
+            const expiresIn = params.get('expires_in');
+            const state = params.get('state');
+            const error = params.get('error');
+            const errorDesc = params.get('error_description');
             
             const redirectTo = localStorage.getItem('redirectAfterLogin') || 'index.html';
             const isAdminFlow = localStorage.getItem('isAdminFlow') === 'true';
+            const baseUrl = window.location.origin + '/training-request';
 
             // Handle OAuth errors
             if (error) {
@@ -73,62 +78,65 @@
                 return;
             }
 
-            if (!code) {
-                showError('No authorization code received from Discord');
+            if (!accessToken) {
+                showError('No access token received from Discord');
                 return;
             }
             
-            // Exchange the authorization code for an access token
             try {
-                // Exchange the code for a token
-                const response = await fetch('/api/auth/discord/callback', {
-                    method: 'POST',
+                // Store the access token
+                localStorage.setItem('discord_token', accessToken);
+                localStorage.setItem('token_type', tokenType);
+                
+                // Fetch user data from Discord API
+                const userResponse = await fetch('https://discord.com/api/users/@me', {
                     headers: {
-                        'Content-Type': 'application/json',
-                    },
-                    body: JSON.stringify({ 
-                        code: code,
-                        redirect_uri: window.location.origin + '/training-request/auth/discord/callback'
-                    })
+                        'Authorization': `${tokenType} ${accessToken}`
+                    }
                 });
 
-                if (!response.ok) {
-                    const errorData = await response.text();
-                    console.error('API Error Response:', errorData);
-                    throw new Error('Failed to authenticate with the server');
+                if (!userResponse.ok) {
+                    throw new Error('Failed to fetch user data from Discord');
                 }
 
-                const data = await response.json().catch(err => {
-                    console.error('JSON Parse Error:', err);
-                    throw new Error('Invalid response from server');
+                const user = await userResponse.json();
+                
+                // Fetch user guilds to check for admin roles
+                const guildsResponse = await fetch('https://discord.com/api/users/@me/guilds', {
+                    headers: {
+                        'Authorization': `${tokenType} ${accessToken}`
+                    }
                 });
-
-                if (!data || !data.user) {
-                    throw new Error('Invalid user data received');
+                
+                let isAdmin = false;
+                if (guildsResponse.ok) {
+                    const guilds = await guildsResponse.json();
+                    // Check if user is admin in any guild
+                    // Note: This is a simplified check. In a real app, you'd want to check specific roles
+                    isAdmin = guilds.some(guild => guild.permissions & 0x8); // 0x8 is ADMINISTRATOR permission
                 }
 
-                // Store user data and token
-                localStorage.setItem('user', JSON.stringify(data.user));
-                if (data.token) {
-                    localStorage.setItem('token', data.token);
-                }
+                // Store user data
+                const userData = {
+                    id: user.id,
+                    username: user.username,
+                    discriminator: user.discriminator,
+                    avatar: user.avatar ? 
+                        `https://cdn.discordapp.com/avatars/${user.id}/${user.avatar}.png` :
+                        `https://cdn.discordapp.com/embed/avatars/${user.discriminator % 5}.png`,
+                    isAdmin: isAdmin,
+                    roles: isAdmin ? ['Admin'] : []
+                };
+
+                localStorage.setItem('user', JSON.stringify(userData));
                 
-                // Check if user is an admin based on roles
-                const isAdmin = data.user.roles && 
-                    Array.isArray(data.user.roles) && 
-                    data.user.roles.some(role => ['Admin', 'Staff Manager', 'Staff'].includes(role));
-                
-                console.log('User roles:', data.user.roles, 'Is admin:', isAdmin);
-                
-                // Determine the base URL
-                const baseUrl = window.location.origin + '/training-request';
-                console.log('Base URL:', baseUrl);
+                console.log('User logged in:', userData);
                 
                 // Handle admin flow (from loginadmin.html)
                 if (isAdminFlow) {
                     console.log('Admin flow detected, checking PIN');
                     const adminPin = localStorage.getItem('adminPin');
-                    if (adminPin === '9966') { // This should be verified server-side in a real app
+                    if (adminPin === '9966') {
                         console.log('Valid admin PIN, redirecting to admin dashboard');
                         window.location.href = `${baseUrl}/admin`;
                         return;
@@ -138,9 +146,9 @@
                     }
                 }
                 
-                // For regular login flow, redirect based on user role
+                // Redirect based on user role
                 if (isAdmin) {
-                    console.log('Admin user detected, redirecting to admin dashboard');
+                    console.log('Admin user, redirecting to admin dashboard');
                     window.location.href = `${baseUrl}/admin`;
                 } else {
                     console.log('Regular user, redirecting to index');
@@ -155,13 +163,15 @@
 
         function showError(message) {
             const errorEl = document.getElementById('error');
-            errorEl.textContent = message;
+            if (errorEl) {
+                errorEl.textContent = message;
+            }
             console.error('Authentication Error:', message);
             
             // Redirect to login page after showing error
             setTimeout(() => {
-                window.location.href = 'login.html';
-            }, 5000);
+                window.location.href = '../login.html';
+            }, 3000);
         }
     </script>
 </body>
