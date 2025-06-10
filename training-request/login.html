@@ -255,11 +255,13 @@
 
             // Build the Discord OAuth2 URL with implicit grant flow
             const clientId = '1381993589663338637'; // FSRP Bot Client ID
-            const redirectUri = encodeURIComponent('https://florida-state-roleplay.pages.dev/training-request/auth/discord/callback');
+            // Use the current domain for the redirect URI
+            const redirectUri = encodeURIComponent(`${window.location.origin}/training-request/auth/discord/callback`);
             const scopes = encodeURIComponent('identify email guilds');
             
             // Using response_type=code for server-side token exchange
             const authUrl = `https://discord.com/api/oauth2/authorize?client_id=${clientId}&redirect_uri=${redirectUri}&response_type=code&scope=${scopes}&state=${state}`;
+            console.log('Redirecting to:', authUrl); // Debug log
             
             // Redirect to Discord OAuth
             window.location.href = authUrl;
