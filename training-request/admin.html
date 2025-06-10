@@ -381,8 +381,8 @@
         <span id="notificationMessage">Notification message</span>
     </div>
 
-    <!-- Load scripts at the end of the body -->
-    <script src="https://kit.fontawesome.com/your-fontawesome-kit.js" crossorigin="anonymous"></script>
+    <!-- Load Font Awesome from CDN -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" integrity="sha512-iecdLmaskl7CVkqkXNQ/ZH/XLlvWZOJyj7tcenmpD1ypASozpmT/E0iPtmFIB46ZmdtAc9eNBvH0H/ZpiBw==" crossorigin="anonymous" referrerpolicy="no-referrer" />
     <script>
         // Discord Webhook URLs
         const DISCORD_WEBHOOKS = {
@@ -1055,7 +1055,7 @@
             } catch (e) {
                 console.error('Error loading applications:', e);
             }
-        });
+        };
     </script>
 </body>
 </html>
