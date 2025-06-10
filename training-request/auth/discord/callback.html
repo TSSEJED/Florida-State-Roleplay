@@ -191,26 +191,30 @@
                     // Store user data in session storage
                     sessionStorage.setItem('userData', JSON.stringify(userData));
                     
-                    // Get the intended redirect URL
-                    let redirectPath = '/index.html';
-                    const storedPath = sessionStorage.getItem('redirectAfterLogin') || localStorage.getItem('redirectAfterLogin');
+                    // Determine the base URL and default path
+                    const baseUrl = 'https://florida-state-roleplay.pages.dev';
+                    const defaultPath = '/training-request/index.html';
                     
-                    // Clean up stored paths
+                    // Get the stored redirect path (if any)
+                    const storedPath = sessionStorage.getItem('redirectAfterLogin') || localStorage.getItem('redirectAfterLogin');
                     sessionStorage.removeItem('redirectAfterLogin');
                     localStorage.removeItem('redirectAfterLogin');
                     
-                    // Determine the correct redirect path
+                    // Determine the correct path
+                    let redirectPath = defaultPath;
                     if (storedPath) {
-                        // Clean up the path
-                        redirectPath = storedPath.startsWith('/') ? storedPath : `/${storedPath}`;
-                        // Ensure it has .html extension
-                        if (!redirectPath.endsWith('.html')) {
-                            redirectPath += '.html';
+                        // Clean up the stored path
+                        let cleanPath = storedPath.startsWith('/') ? storedPath : `/${storedPath}`;
+                        if (!cleanPath.startsWith('/training-request/')) {
+                            cleanPath = `/training-request${cleanPath}`;
                         }
+                        if (!cleanPath.endsWith('.html') && !cleanPath.includes('?')) {
+                            cleanPath += '.html';
+                        }
+                        redirectPath = cleanPath;
                     }
                     
                     // Construct the full URL
-                    const baseUrl = 'https://florida-state-roleplay.pages.dev';
                     const redirectUrl = `${baseUrl}${redirectPath}`;
                     
                     console.log('Final redirect URL:', redirectUrl);

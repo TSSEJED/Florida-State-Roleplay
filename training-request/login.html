@@ -139,10 +139,10 @@
             // Set up Discord login button
             if (loginBtn) {
                 loginBtn.addEventListener('click', () => {
-                    // Determine the correct return path
-                    let returnPath = '/index.html';
+                    // Determine the correct return path with full training-request prefix
+                    let returnPath = '/training-request/index.html';
                     if (window.location.href.includes('admin.html')) {
-                        returnPath = '/admin.html';
+                        returnPath = '/training-request/admin.html';
                     }
                     
                     console.log('Setting redirect path to:', returnPath);
