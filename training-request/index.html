@@ -1,510 +1,11 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>FSRP Training Application</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
-    <style>
-        :root {
-            --primary: #4a6fa5;
-            --primary-dark: #3a5a80;
-            --background: #f0f2f5;
-            --text: #333;
-            --white: #fff;
-            --border: #e1e4e8;
-            --shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
-        }
-        
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-        }
-        
-        body {
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-            background: var(--background);
-            color: var(--text);
-            line-height: 1.6;
-            padding: 20px;
-            min-height: 100vh;
-        }
-        
-        .container {
-            max-width: 1000px;
-            margin: 0 auto;
-            padding: 20px;
-        }
-        
-        /* Header Styles */
-        header {
-            text-align: center;
-            margin-bottom: 30px;
-            padding: 30px 20px;
-            background: linear-gradient(135deg, var(--primary), var(--primary-dark));
-            color: white;
-            border-radius: 12px;
-            box-shadow: var(--shadow);
-        }
-        
-        header h1 {
-            color: white;
-            margin-bottom: 10px;
-            font-size: 2.5rem;
-            font-weight: 700;
-        }
-        
-        header p {
-            font-size: 1.1rem;
-            opacity: 0.9;
-            max-width: 700px;
-            margin: 0 auto;
-            line-height: 1.6;
-        }
-        
-        /* Card Styles */
-        .card {
-            background: var(--white);
-            border-radius: 12px;
-            box-shadow: var(--shadow);
-            padding: 30px;
-            margin-bottom: 30px;
-            transition: transform 0.3s ease, box-shadow 0.3s ease;
-        }
-        
-        .card:hover {
-            transform: translateY(-5px);
-            box-shadow: 0 8px 25px rgba(0, 0, 0, 0.15);
-        }
-        
-        /* Form Styles */
-        .form-section {
-            margin-bottom: 40px;
-            padding-bottom: 30px;
-            border-bottom: 1px solid #eee;
-        }
-        
-        .form-section:last-child {
-            border-bottom: none;
-            margin-bottom: 20px;
-        }
-        
-        .form-section h2 {
-            color: var(--primary);
-            margin-bottom: 20px;
-            font-size: 1.4rem;
-            padding-bottom: 10px;
-            border-bottom: 2px solid var(--primary);
-        }
-        
-        .form-group {
-            margin-bottom: 25px;
-        }
-        
-        label {
-            display: block;
-            margin-bottom: 10px;
-            font-weight: 600;
-            color: var(--primary);
-            font-size: 0.95rem;
-        }
-        
-        .required::after {
-            content: ' *';
-            color: #e74c3c;
-        }
-        
-        input[type="text"],
-        input[type="email"],
-        select,
-        textarea {
-            width: 100%;
-            padding: 14px 18px;
-            border: 2px solid var(--border);
-            border-radius: 8px;
-            font-size: 1rem;
-            transition: all 0.3s ease;
-            background-color: #f9fafb;
-            font-family: inherit;
-        }
-        
-        input[type="text"]:focus,
-        input[type="email"]:focus,
-        select:focus,
-        textarea:focus {
-            outline: none;
-            border-color: var(--primary);
-            box-shadow: 0 0 0 4px rgba(74, 111, 165, 0.15);
-            background-color: white;
-        }
-        
-        textarea {
-            min-height: 120px;
-            resize: vertical;
-            line-height: 1.6;
-        }
-        
-        .form-hint {
-            display: block;
-            margin-top: 6px;
-            font-size: 0.85rem;
-            color: #7f8c8d;
-            font-style: italic;
-        }
-        
-        /* Button Styles */
-        .btn {
-            display: inline-flex;
-            align-items: center;
-            justify-content: center;
-            gap: 8px;
-            background: var(--primary);
-            color: white;
-            padding: 14px 28px;
-            border: none;
-            border-radius: 8px;
-            font-size: 1rem;
-            font-weight: 600;
-            cursor: pointer;
-            transition: all 0.3s ease;
-            text-align: center;
-            text-decoration: none;
-        }
-        
-        .btn:hover {
-            background: var(--primary-dark);
-            transform: translateY(-2px);
-            box-shadow: 0 6px 15px rgba(0, 0, 0, 0.15);
-        }
-        
-        .btn:active {
-            transform: translateY(0);
-            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
-        }
-        
-        .btn i {
-            font-size: 1.1em;
-        }
-        
-        .btn-block {
-            display: flex;
-            width: 100%;
-        }
-        
-        .submit-btn {
-            background: #27ae60;
-            color: white;
-            font-size: 1.1rem;
-            padding: 16px 32px;
-            margin-top: 20px;
-            width: 100%;
-        }
-        
-        .submit-btn:hover {
-            background: #219653;
-        }
-        
-        /* Notification Styles */
-        .notification {
-            position: fixed;
-            top: 30px;
-            right: 30px;
-            padding: 18px 25px;
-            border-radius: 10px;
-            color: white;
-            font-weight: 500;
-            display: flex;
-            align-items: center;
-            gap: 12px;
-            box-shadow: 0 6px 20px rgba(0, 0, 0, 0.15);
-            transform: translateX(150%);
-            transition: transform 0.4s cubic-bezier(0.68, -0.55, 0.27, 1.55);
-            z-index: 1000;
-            max-width: 380px;
-            backdrop-filter: blur(10px);
-            opacity: 0;
-        }
-
-        .notification.show {
-            transform: translateX(0);
-            opacity: 1;
-        }
-
-        .notification.success {
-            background: rgba(46, 213, 115, 0.95);
-            border-left: 4px solid #20bf6b;
-        }
-
-        .notification.error {
-            background: rgba(255, 71, 87, 0.95);
-            border-left: 4px solid #eb3b5a;
-        }
-
-        .notification.warning {
-            background: rgba(255, 165, 2, 0.95);
-            border-left: 4px solid #fa8231;
-        }
-
-        .notification i {
-            font-size: 22px;
-        }
-
-        /* Form Layout */
-        .form-row {
-            display: flex;
-            gap: 20px;
-            margin-bottom: 20px;
-        }
-        
-        .form-group.half {
-            flex: 1;
-            min-width: 0;
-        }
-        
-        /* Modal Styles */
-        .modal-overlay {
-            position: fixed;
-            top: 0;
-            left: 0;
-            right: 0;
-            bottom: 0;
-            background: rgba(0, 0, 0, 0.5);
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            z-index: 2000;
-            opacity: 0;
-            visibility: hidden;
-            transition: all 0.3s ease;
-            backdrop-filter: blur(3px);
-        }
-        
-        .modal-overlay.active {
-            opacity: 1;
-            visibility: visible;
-        }
-        
-        .modal {
-            background: white;
-            padding: 30px;
-            border-radius: 12px;
-            width: 90%;
-            max-width: 500px;
-            max-height: 90vh;
-            overflow-y: auto;
-            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
-            transform: translateY(20px);
-            transition: transform 0.3s ease;
-        }
-        
-        .modal-overlay.active .modal {
-            transform: translateY(0);
-        }
-        
-        .modal-header {
-            margin-bottom: 20px;
-            padding-bottom: 15px;
-            border-bottom: 1px solid #eee;
-        }
-        
-        .modal-header h2 {
-            margin: 0;
-            color: var(--primary);
-        }
-        
-        .modal-body {
-            margin-bottom: 25px;
-        }
-        
-        .modal-footer {
-            display: flex;
-            justify-content: flex-end;
-            gap: 10px;
-            padding-top: 15px;
-            border-top: 1px solid #eee;
-        }
-        
-        /* Responsive Design */
-        @media (max-width: 768px) {
-            .container {
-                padding: 10px;
-            }
-            
-            header {
-                padding: 25px 15px;
-                margin-bottom: 20px;
-            }
-            
-            header h1 {
-                font-size: 1.8rem;
-            }
-            
-            .card {
-                padding: 20px;
-                margin-bottom: 20px;
-            }
-            
-            .form-row {
-                flex-direction: column;
-                gap: 20px;
-            }
-            
-            .form-group.half {
-                width: 100%;
-            }
-            
-            .notification {
-                max-width: 90%;
-                right: 15px;
-                left: 15px;
-                top: 15px;
-            }
-            
-            .modal {
-                padding: 20px;
-            }
-        }
-        
-        /* Custom Modal */
-        .modal-overlay {
-            position: fixed;
-            top: 0;
-            left: 0;
-            right: 0;
-            bottom: 0;
-            background: rgba(0, 0, 0, 0.5);
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            z-index: 1000;
-            opacity: 0;
-            visibility: hidden;
-            transition: all 0.3s ease;
-            backdrop-filter: blur(3px);
-        }
-
-        .modal-overlay.active {
-            opacity: 1;
-            visibility: visible;
-        }
-
-        .modal {
-            background: white;
-            padding: 25px;
-            border-radius: 12px;
-            width: 90%;
-            max-width: 450px;
-            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
-            transform: translateY(20px);
-            transition: transform 0.3s ease;
-            position: relative;
-            border: 1px solid rgba(0, 0, 0, 0.1);
-        }
-
-        .modal-overlay.active .modal {
-            transform: translateY(0);
-        }
-
-        .modal-close {
-            position: absolute;
-            top: 15px;
-            right: 15px;
-            background: none;
-            border: none;
-            font-size: 20px;
-            cursor: pointer;
-            color: #666;
-            transition: color 0.2s;
-        }
-
-        .modal-close:hover {
-            color: #333;
-        }
-
-        .modal-title {
-            margin-top: 0;
-            color: #2c3e50;
-            font-size: 1.5em;
-            margin-bottom: 15px;
-        }
-
-        .modal-content {
-            margin: 15px 0;
-            color: #34495e;
-            line-height: 1.5;
-        }
-
-        .modal-actions {
-            display: flex;
-            justify-content: flex-end;
-            gap: 10px;
-            margin-top: 20px;
-        }
-
-        .btn {
-            padding: 8px 20px;
-            border: none;
-            border-radius: 6px;
-            font-weight: 500;
-            cursor: pointer;
-            transition: all 0.2s;
-        }
-
-        .btn-primary {
-            background: #3498db;
-            color: white;
-        }
-
-        .btn-primary:hover {
-            background: #2980b9;
-        }
-
-        .btn-outline {
-            background: transparent;
-            border: 1px solid #ddd;
-            color: #7f8c8d;
-        }
-
-        .btn-outline:hover {
-            background: #f5f6fa;
-            border-color: #ccc;
-        }
-
-        /* Form Elements */
-        .form-group {
-            margin-bottom: 20px;
-        }
-
-        .form-group label {
-            display: block;
-            margin-bottom: 8px;
-            font-weight: 500;
-            color: #2c3e50;
-        }
-
-        .form-control {
-            width: 100%;
-            padding: 10px 15px;
-            border: 1px solid #ddd;
-            border-radius: 6px;
-            font-size: 16px;
-            transition: border-color 0.3s;
-        }
-
-        .form-control:focus {
-            outline: none;
-            border-color: #3498db;
-            box-shadow: 0 0 0 3px rgba(52, 152, 219, 0.2);
-        }
-
-        /* Animations */
-        @keyframes slideIn {
-            from { transform: translateX(100%); }
-            to { transform: translateX(0); }
-        }
-
-        @keyframes fadeIn {
-            from { opacity: 0; }
-            to { opacity: 1; }
-        }
+    <link rel="stylesheet" href="styles.css">
 </head>
 <body>
     <div class="container">
@@ -512,90 +13,63 @@
             <h1>FSRP Training Application</h1>
             <p>Submit your training request below</p>
         </header>
-        
-        <div class="card">
+
+        <div class="form-container">
             <form id="trainingForm" class="training-form">
                 <div class="form-group">
-                    <label for="applicantName" class="required">Your Name</label>
-                    <input type="text" id="applicantName" name="applicantName" required>
+                    <label for="name">Full Name <span class="required">*</span></label>
+                    <input type="text" id="name" name="name" required>
                 </div>
 
                 <div class="form-group">
-                    <label for="discordInfo" class="required">Discord (Name | ID)</label>
-                    <input type="text" id="discordInfo" name="discordInfo" placeholder="Example: username#1234 | 123456789012345678" required>
-                    <small class="form-hint">Format: YourDiscordName#1234 | 123456789012345678</small>
+                    <label for="email">Email <span class="required">*</span></label>
+                    <input type="email" id="email" name="email" required>
                 </div>
 
                 <div class="form-group">
-                    <label for="ingameInfo" class="required">In-Game Name | ID</label>
-                    <input type="text" id="ingameInfo" name="ingameInfo" placeholder="Example: John_Doe | 123456" required>
-                    <small class="form-hint">Format: YourInGameName | YourInGameID</small>
+                    <label for="department">Department <span class="required">*</span></label>
+                    <select id="department" name="department" required>
+                        <option value="">Select Department</option>
+                        <option value="LSP">LSP</option>
+                        <option value="BCSO">BCSO</option>
+                        <option value="SASPR">SASPR</option>
+                        <option value="SAHP">SAHP</option>
+                        <option value="Other">Other</option>
+                    </select>
                 </div>
 
-                <div class="form-section">
-                    <h2>TRAINING SKILLS</h2>
-                    
-                    <div class="form-group">
-                        <label for="q1" class="required">Have you ever trained someone before? If yes, how did it go?</label>
-                        <textarea id="q1" name="q1" required></textarea>
-                    </div>
-
-                    <div class="form-group">
-                        <label for="q2" class="required">How would you explain the rules to a new moderator with no prior experience?</label>
-                        <textarea id="q2" name="q2" required></textarea>
-                    </div>
-
-                    <div class="form-group">
-                        <label for="q3" class="required">If a trainee keeps making the same mistake, how would you address it?</label>
-                        <textarea id="q3" name="q3" required></textarea>
-                    </div>
+                <div class="form-group">
+                    <label for="rank">Current Rank <span class="required">*</span></label>
+                    <input type="text" id="rank" name="rank" required>
                 </div>
 
-                <div class="form-section">
-                    <h2>LEADERSHIP & COMMUNICATION</h2>
-                    
-                    <div class="form-group">
-                        <label for="q4" class="required">How would you handle a situation where a trainee argues with you during training?</label>
-                        <textarea id="q4" name="q4" required></textarea>
-                    </div>
 
-                    <div class="form-group">
-                        <label for="q5" class="required">If two trainees are not getting along, how would you mediate the situation?</label>
-                        <textarea id="q5" name="q5" required></textarea>
-                    </div>
-
-                    <div class="form-group">
-                        <label for="q6" class="required">Can you maintain a calm and professional demeanor, even when dealing with difficult individuals?</label>
-                        <textarea id="q6" name="q6" required></textarea>
-                    </div>
+                <div class="form-group">
+                    <label for="trainingType">Type of Training <span class="required">*</span></label>
+                    <select id="trainingType" name="trainingType" required>
+                        <option value="">Select Training Type</option>
+                        <option value="Field Training">Field Training</option>
+                        <option value="Firearms">Firearms</option>
+                        <option value="Defensive Tactics">Defensive Tactics</option>
+                        <option value="EVOC">EVOC</option>
+                        <option value="Other">Other</option>
+                    </select>
                 </div>
 
-                <div class="form-section">
-                    <h2>TESTING & EVALUATION</h2>
-                    
-                    <div class="form-group">
-                        <label for="q7" class="required">How would you assess whether a trainee is ready to become a full moderator?</label>
-                        <textarea id="q7" name="q7" required></textarea>
-                    </div>
-
-                    <div class="form-group">
-                        <label for="q8" class="required">Do you have any ideas for training sessions or mock scenarios to help evaluate their skills?</label>
-                        <textarea id="q8" name="q8" required></textarea>
-                    </div>
+                <div class="form-group">
+                    <label for="preferredDate">Preferred Date <span class="required">*</span></label>
+                    <input type="date" id="preferredDate" name="preferredDate" required>
                 </div>
 
-                <div class="form-section">
-                    <h2>RELIABILITY</h2>
-                    
-                    <div class="form-group">
-                        <label for="q9" class="required">Are you active enough to train moderators on a regular basis?</label>
-                        <textarea id="q9" name="q9" required></textarea>
-                    </div>
+                <div class="form-group">
+                    <label for="preferredTime">Preferred Time <span class="required">*</span></label>
+                    <input type="time" id="preferredTime" name="preferredTime" required>
+                </div>
 
-                    <div class="form-group">
-                        <label for="q10" class="required">Would you be able to keep accurate records of who has been trained and who has not?</label>
-                        <textarea id="q10" name="q10" required></textarea>
-                    </div>
+
+                <div class="form-group">
+                    <label for="additionalInfo">Additional Information</label>
+                    <textarea id="additionalInfo" name="additionalInfo" rows="4"></textarea>
                 </div>
 
                 <button type="submit" class="submit-btn">Submit Application</button>
@@ -603,13 +77,12 @@
         </div>
 
         <!-- Notification -->
-        <div id="notification" class="notification" style="display: none;">
+        <div id="notification" class="notification">
             <i class="fas fa-check-circle"></i>
             <span class="notification-message"></span>
         </div>
 
         <script>
-            // Form submission handler
             document.addEventListener('DOMContentLoaded', function() {
                 const form = document.getElementById('trainingForm');
                 if (!form) return;
@@ -659,6 +132,7 @@
                             submitBtn.disabled = false;
                             submitBtn.innerHTML = 'Submit Application';
                         }
+                    }
                 });
             });
         </script>
