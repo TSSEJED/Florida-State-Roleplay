@@ -314,14 +314,35 @@
 <body>
     <!-- Authentication Check -->
     <script>
-        // Check if user is logged in
-        const isLoggedIn = sessionStorage.getItem('isLoggedIn') === 'true';
-        const userData = sessionStorage.getItem('userData');
-        
-        if (!isLoggedIn || !userData) {
-            // Redirect to login if not authenticated
-            window.location.href = 'login.html';
-        }
+        // Check authentication status
+        (function() {
+            const isLoggedIn = sessionStorage.getItem('isLoggedIn') === 'true';
+            let userData = {};
+            
+            try {
+                const userDataStr = sessionStorage.getItem('userData');
+                userData = userDataStr ? JSON.parse(userDataStr) : {};
+            } catch (e) {
+                console.error('Error parsing user data:', e);
+                sessionStorage.clear();
+                window.location.href = 'login.html?error=session_invalid';
+                return;
+            }
+            
+            // Check for required user data and valid token
+            const token = sessionStorage.getItem('authToken');
+            if (!isLoggedIn || !userData.id || !token || !token.startsWith('demo-token-')) {
+                sessionStorage.clear();
+                window.location.href = 'login.html?error=login_required';
+                return;
+            }
+            
+            // Update username in the UI if element exists
+            const usernameEl = document.getElementById('username');
+            if (usernameEl && userData.username) {
+                usernameEl.textContent = userData.username;
+            }
+        })();
     </script>
     
     <!-- User Info Bar -->
@@ -1033,87 +1054,66 @@
             }
         }
 
-        // Wait for DOM to be fully loaded
+        // Simple initialization when DOM is ready
         document.addEventListener('DOMContentLoaded', function() {
-            console.log('DOM fully loaded');
+            console.log('Admin page loaded');
             
-            // Initialize dashboard
-            initializeDashboard();
+            // Set username if element exists
+            const usernameEl = document.getElementById('username');
+            if (usernameEl && userData.username) {
+                usernameEl.textContent = userData.username;
+            }
             
             // Setup logout button
-            setupLogoutButton();
-            
-            // Function to setup event listeners
-            function setupEventListeners() {
-                // Status filter
-                const statusFilter = document.getElementById('statusFilter');
-                if (statusFilter) {
-                    statusFilter.addEventListener('change', renderApplications);
-                    console.log('Status filter initialized');
-                } else {
-                    console.warn('Status filter element not found');
-                }
-                
-                // Search input
-                const searchInput = document.getElementById('searchInput');
-                if (searchInput) {
-                    searchInput.addEventListener('input', renderApplications);
-                    console.log('Search input initialized');
-                } else {
-                    console.warn('Search input element not found');
-                }
-                
-                // Close modal button
-                const closeModalBtn = document.querySelector('.close-modal');
-                if (closeModalBtn) {
-                    closeModalBtn.addEventListener('click', closeModal);
-                    console.log('Close modal button initialized');
-                } else {
-                    console.warn('Close modal button not found');
-                }
-                
-                // Modal background click handler
-                const modal = document.getElementById('applicationModal');
-                if (modal) {
-                    modal.addEventListener('click', function(e) {
-                        if (e.target === modal) {
-                            closeModal();
-                        }
-                    });
-                }
+            const logoutBtn = document.getElementById('logoutBtn');
+            if (logoutBtn) {
+                logoutBtn.addEventListener('click', function() {
+                    sessionStorage.clear();
+                    window.location.href = 'login.html';
+                });
             }
             
-            // Initial setup of event listeners
-            setupEventListeners();
-            
-            // Check if there are any applications
-            function checkApplications() {
-                try {
-                    const applications = JSON.parse(localStorage.getItem('trainingApplications') || '[]');
-                    if (applications.length === 0) {
-                        console.log('No applications found in localStorage');
-                    } else {
-                        console.log(`Loaded ${applications.length} applications from localStorage`);
-                        renderApplications();
-                    }
-                } catch (e) {
-                    console.error('Error loading applications:', e);
-                }
+            // Setup status filter
+            const statusFilter = document.getElementById('statusFilter');
+            if (statusFilter) {
+                statusFilter.addEventListener('change', renderApplications);
             }
             
-            // Initial check for applications
-            checkApplications();
+            // Setup search input
+            const searchInput = document.getElementById('searchInput');
+            if (searchInput) {
+                searchInput.addEventListener('input', renderApplications);
+            }
             
-            // Retry finding elements if they weren't found initially
-            const requiredElements = ['statusFilter', 'searchInput', 'applicationsList'];
-            const missingElements = requiredElements.filter(id => !document.getElementById(id));
+            // Setup modal close button
+            const closeModalBtn = document.querySelector('.close-modal');
+            if (closeModalBtn) {
+                closeModalBtn.addEventListener('click', closeModal);
+            }
             
-            if (missingElements.length > 0) {
-                console.warn('Some required elements not found, retrying...', missingElements);
-                setTimeout(() => {
-                    setupEventListeners();
-                    checkApplications();
-                }, 500);
+            // Setup modal background click
+            const modal = document.getElementById('applicationModal');
+            if (modal) {
+                modal.addEventListener('click', function(e) {
+                    if (e.target === modal) closeModal();
+                });
+            }
+            
+            // Load and render applications
+            try {
+                const apps = JSON.parse(localStorage.getItem('trainingApplications') || '[]');
+                if (apps.length > 0) {
+                    renderApplications();
+                } else {
+                    document.getElementById('applicationsList').innerHTML = `
+                        <div class="empty-state">
+                            <i class="fas fa-inbox"></i>
+                            <h3>No applications found</h3>
+                            <p>Submitted training applications will appear here.</p>
+                        </div>`;
+                }
+            } catch (e) {
+                console.error('Error loading applications:', e);
             }
         });
     </script>

@@ -222,89 +222,119 @@
                         return;
                     }
                     
-                    // Disable the button and show loading state
+                    // Show loading state
                     loginBtn.disabled = true;
                     loginBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Verifying...';
+                    hideError();
+                    hideSuccess();
                     
                     try {
-                        // In a real implementation, you would verify the code with your server
-                        // For now, we'll simulate a successful verification
-                        const response = await verifyLoginCode(code);
+                        const result = await verifyLoginCode(code);
                         
-                        if (response.success) {
-                            // Store login state
-                            sessionStorage.setItem('isLoggedIn', 'true');
-                            sessionStorage.setItem('userData', JSON.stringify(response.user));
-                            
-                            // Redirect to admin page
-                            window.location.href = 'admin.html';
-                        } else {
-                            showError(response.message || 'Invalid code. Please try again.');
+                        if (!result.success) {
+                            showError(result.message || 'Invalid code. Please try again.');
                             loginCodeInput.focus();
                         }
+                        // Note: On success, verifyLoginCode will handle the redirect
                     } catch (error) {
                         console.error('Login error:', error);
                         showError('An error occurred. Please try again.');
                     } finally {
-                        // Re-enable the button
-                        loginBtn.disabled = false;
-                        loginBtn.textContent = 'Verify Code';
+                        // Reset button state if still on login page
+                        if (window.location.pathname.endsWith('login.html')) {
+                            loginBtn.disabled = false;
+                            loginBtn.textContent = 'Verify Code';
+                        }
                     }
                 });
             }
             
             // Show error message
             function showError(message) {
-                errorMessage.textContent = message;
-                errorMessage.style.display = 'block';
-                successMessage.style.display = 'none';
+                if (errorMessage) {
+                    errorMessage.textContent = message;
+                    errorMessage.style.display = 'block';
+                }
+                hideSuccess();
                 
                 // Auto-hide error after 5 seconds
-                setTimeout(() => {
-                    errorMessage.style.display = 'none';
-                }, 5000);
+                setTimeout(hideError, 5000);
             }
             
             // Show success message
             function showSuccess(message) {
-                successMessage.textContent = message;
-                successMessage.style.display = 'block';
-                errorMessage.style.display = 'none';
+                if (successMessage) {
+                    successMessage.textContent = message;
+                    successMessage.style.display = 'block';
+                }
+                hideError();
                 
-                // Auto-hide success after 5 seconds
-                setTimeout(() => {
+                // Auto-hide success after 3 seconds
+                setTimeout(hideSuccess, 3000);
+            }
+            
+            // Hide error message
+            function hideError() {
+                if (errorMessage) {
+                    errorMessage.style.display = 'none';
+                }
+            }
+            
+            // Hide success message
+            function hideSuccess() {
+                if (successMessage) {
                     successMessage.style.display = 'none';
-                }, 5000);
+                }
             }
             
             // Simple verification for demo purposes
             // In a real implementation, this would be done server-side
             async function verifyLoginCode(code) {
                 try {
-                    // Simulate API call delay
-                    await new Promise(resolve => setTimeout(resolve, 1000));
-                    
-                    // For demo purposes, accept any 6-digit code
-                    // In a real implementation, this would verify against a database
-                    if (/^\d{6}$/.test(code)) {
-                        return {
-                            success: true,
-                            user: {
-                                id: 'demo-user',
-                                username: 'DemoUser',
-                                discriminator: '1234',
-                                avatar: null,
-                                isAdmin: false
-                            }
-                        };
-                    } else {
+                    // For demo, accept any 6-digit code
+                    if (!/^\d{6}$/.test(code)) {
                         return {
                             success: false,
                             message: 'Invalid code format. Please enter a 6-digit number.'
                         };
                     }
+
+                    // In a real implementation, you would make an API call here
+                    // const response = await fetch('/api/verify-code', {
+                    //     method: 'POST',
+                    //     headers: { 'Content-Type': 'application/json' },
+                    //     body: JSON.stringify({ code })
+                    // });
+                    // const result = await response.json();
+                    
+                    // For demo, simulate a successful response
+                    const result = {
+                        success: true,
+                        user: {
+                            id: 'demo-user-' + Math.random().toString(36).substr(2, 9),
+                            username: 'Demo Admin',
+                            roles: ['admin']
+                        },
+                        token: 'demo-token-' + Math.random().toString(36).substr(2)
+                    };
+
+                    if (result.success) {
+                        // Store user data in session storage
+                        sessionStorage.setItem('isLoggedIn', 'true');
+                        sessionStorage.setItem('userData', JSON.stringify(result.user));
+                        sessionStorage.setItem('authToken', result.token);
+                        
+                        // Redirect to admin page
+                        window.location.href = 'admin.html';
+                        return { success: true };
+                    } else {
+                        return {
+                            success: false,
+                            message: result.message || 'Verification failed. Please try again.'
+                        };
+                    }
                 } catch (error) {
-                    console.error('Error verifying code:', error);
+                    console.error('Login error:', error);
                     return {
                         success: false,
                         message: 'An error occurred. Please try again.'
@@ -312,16 +342,44 @@
                 }
             }
             
-            // Check if user is already logged in
+            // Check for expired or invalid session
             const isLoggedIn = sessionStorage.getItem('isLoggedIn') === 'true';
-            const userData = sessionStorage.getItem('userData');
-            if (isLoggedIn && userData) {
-                window.location.href = 'admin.html';
-            } else {
-                // Focus the code input when the page loads
-                if (loginCodeInput) {
-                    loginCodeInput.focus();
+            let userData = null;
+            
+            try {
+                const userDataStr = sessionStorage.getItem('userData');
+                userData = userDataStr ? JSON.parse(userDataStr) : null;
+            } catch (e) {
+                console.error('Error parsing user data:', e);
+                sessionStorage.clear();
+            }
+            
+            // Only redirect if we have valid user data
+            if (isLoggedIn && userData && userData.id) {
+                // Verify the token is still valid (in a real app, this would check with the server)
+                const token = sessionStorage.getItem('authToken');
+                if (token && token.startsWith('demo-token-')) {
+                    window.location.href = 'admin.html';
+                    return; // Stop further execution
+                } else {
+                    // Clear invalid session
+                    sessionStorage.clear();
                 }
+            }
+            
+            // Show error message if redirected with error
+            const urlParams = new URLSearchParams(window.location.search);
+            const errorType = urlParams.get('error');
+            
+            if (errorType === 'session_invalid') {
+                showError('Your session has expired. Please log in again.');
+            } else if (errorType === 'login_required') {
+                showError('Please log in to access this page.');
+            }
+            
+            // Focus the input field
+            if (loginCodeInput) {
+                loginCodeInput.focus();
             }
         });
     </script>
