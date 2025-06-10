@@ -472,38 +472,76 @@
             }
         }
 
+        // Admin role ID - Replace with your actual Discord role ID
+        const ADMIN_ROLE_ID = '1377651835715846214'; // Your admin role ID
+
+
         // Check authentication and admin status
-        document.addEventListener('DOMContentLoaded', () => {
-            // User is already authenticated at this point due to session check
+        document.addEventListener('DOMContentLoaded', async () => {
             const userGreeting = document.getElementById('userGreeting');
-            if (userGreeting) {
-                userGreeting.textContent = 'Welcome, Admin';
-            }
             const userDiscordInfo = document.getElementById('userDiscordInfo');
             const logoutBtn = document.getElementById('logoutBtn');
+            const loadingIndicator = document.createElement('div');
+            
+            // Show loading state
+            loadingIndicator.textContent = 'Checking permissions...';
+            loadingIndicator.style.padding = '20px';
+            loadingIndicator.style.textAlign = 'center';
+            document.body.innerHTML = '';
+            document.body.appendChild(loadingIndicator);
 
-            // Redirect to login if not authenticated
-            if (!user) {
-                window.location.href = 'login.html';
-                return;
+            try {
+                // Check if user is logged in via Discord
+                const userData = sessionStorage.getItem('userData');
+                if (!userData) {
+                    // Redirect to login with a return URL
+                    sessionStorage.setItem('redirectAfterLogin', 'admin.html');
+                    window.location.href = 'login.html';
+                    return;
+                }
+
+
+                const user = JSON.parse(userData);
+                
+                // Check if user has admin role
+                const hasAdminRole = user.roles && user.roles.includes(ADMIN_ROLE_ID);
+                
+                if (!hasAdminRole) {
+                    loadingIndicator.textContent = 'You do not have permission to access this page. Redirecting...';
+                    setTimeout(() => window.location.href = 'index.html', 2000);
+                    return;
+                }
+
+                
+                // User is admin, show the admin interface
+                document.body.innerHTML = document.body.innerHTML; // Restore original content
+                
+                // Update UI with user info
+                if (userGreeting) {
+                    userGreeting.textContent = `Welcome, ${user.username || 'Admin'}`;
+                }
+                if (userDiscordInfo) {
+                    userDiscordInfo.textContent = `${user.username}${user.discriminator ? `#${user.discriminator}` : ''}`;
+                }
+
+                // Handle logout
+                if (logoutBtn) {
+                    logoutBtn.addEventListener('click', () => {
+                        sessionStorage.removeItem('userData');
+                        window.location.href = 'login.html';
+                    });
+                }
+                
+                // Load applications
+                if (typeof renderApplications === 'function') {
+                    renderApplications();
+                }
+                
+            } catch (error) {
+                console.error('Error checking admin access:', error);
+                loadingIndicator.textContent = 'An error occurred. Redirecting to login...';
+                setTimeout(() => window.location.href = 'login.html', 2000);
             }
-
-            // Redirect to home if not admin
-            if (!user.isAdmin) {
-                alert('You do not have permission to access this page.');
-                window.location.href = 'index.html';
-                return;
-            }
-
-            // Update UI with user info
-            userGreeting.textContent = `Welcome, ${user.username || 'Admin'}`;
-            userDiscordInfo.textContent = `${user.username}${user.discriminator ? `#${user.discriminator}` : ''}`;
-
-            // Handle logout
-            logoutBtn.addEventListener('click', () => {
-                localStorage.removeItem('user');
-                window.location.href = 'login.html';
-            });
         });
 
         // Notification System

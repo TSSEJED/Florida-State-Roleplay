@@ -157,7 +157,22 @@
                     isAdmin = guilds.some(guild => guild.permissions & 0x8); // 0x8 is ADMINISTRATOR permission
                 }
 
-                // Store user data
+                // Get the user's roles from a specific guild (replace 'YOUR_GUILD_ID' with your actual guild ID)
+                let userRoles = [];
+                try {
+                    const guildMemberResponse = await fetch(`https://discord.com/api/users/@me/guilds/1271521823259099138/member`, {
+                        headers: { 'Authorization': `${tokenType} ${accessToken}` }
+                    });
+                    
+                    if (guildMemberResponse.ok) {
+                        const guildMember = await guildMemberResponse.json();
+                        userRoles = guildMember.roles || [];
+                    }
+                } catch (e) {
+                    console.error('Error fetching guild member data:', e);
+                }
+
+                // Store user data with roles
                 const userData = {
                     id: user.id,
                     username: user.username,
@@ -166,33 +181,26 @@
                         `https://cdn.discordapp.com/avatars/${user.id}/${user.avatar}.png` :
                         `https://cdn.discordapp.com/embed/avatars/${user.discriminator % 5}.png`,
                     isAdmin: isAdmin,
-                    roles: isAdmin ? ['Admin'] : []
+                    roles: userRoles, // Store actual role IDs
+                    email: user.email || ''
                 };
 
-                localStorage.setItem('user', JSON.stringify(userData));
-                
                 console.log('User logged in:', userData);
                 
-                // Handle admin flow (from loginadmin.html)
-                if (isAdminFlow) {
-                    console.log('Admin flow detected, checking PIN');
-                    const adminPin = localStorage.getItem('adminPin');
-                    if (adminPin === '9966') {
-                        console.log('Valid admin PIN, redirecting to admin dashboard');
-                        window.location.href = baseUrl + '/admin.html';
-                        return;
-                    } else {
-                        console.log('Invalid admin PIN');
-                        throw new Error('Invalid admin credentials');
-                    }
-                }
-                
                 try {
-                    // Store only the essential user data in session storage
+                    // Store user data in session storage
                     sessionStorage.setItem('userData', JSON.stringify(userData));
                     
-                    // Redirect directly to the index page
-                    window.location.href = '../index.html';
+                    // Get the redirect URL from session storage (set by login page)
+                    const redirectAfterLogin = sessionStorage.getItem('redirectAfterLogin');
+                    
+                    // Clear the redirect from session storage
+                    sessionStorage.removeItem('redirectAfterLogin');
+                    
+                    // Redirect to the intended page or default to index.html
+                    const redirectUrl = redirectAfterLogin || '../index.html';
+                    console.log('Redirecting to:', redirectUrl);
+                    window.location.href = redirectUrl;
                 } catch (redirectError) {
                     console.error('Error during redirect:', redirectError);
                     showError(`Error during redirect: ${redirectError.message}`);

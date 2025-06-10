@@ -96,5 +96,41 @@
         <p>Click below to access the training application</p>
         <a href="index.html" class="btn">Enter Application</a>
     </div>
+    <script>
+        // Discord OAuth2 Configuration
+        const DISCORD_CLIENT_ID = '1381993589663338637';
+        const DISCORD_REDIRECT_URI = window.location.origin + '/auth/discord/callback.html';
+        const DISCORD_SCOPE = 'identify email guilds';
+
+        // Initialize the login page
+        document.addEventListener('DOMContentLoaded', () => {
+            const loginBtn = document.getElementById('discordLoginBtn');
+            
+            // Check if we have a redirect URL in session storage
+            const redirectAfterLogin = sessionStorage.getItem('redirectAfterLogin');
+            
+            // If user is already logged in, redirect them
+            const userData = sessionStorage.getItem('userData');
+            if (userData) {
+                redirectAfterLogin ? 
+                    window.location.href = redirectAfterLogin : 
+                    window.location.href = 'index.html';
+                return;
+            }
+
+            // Set up Discord login button
+            if (loginBtn) {
+                loginBtn.addEventListener('click', () => {
+                    // Store the current page as the return URL
+                    const returnUrl = window.location.href.includes('admin.html') ? 'admin.html' : 'index.html';
+                    sessionStorage.setItem('redirectAfterLogin', returnUrl);
+                    
+                    // Redirect to Discord OAuth2
+                    const authUrl = `https://discord.com/api/oauth2/authorize?client_id=${DISCORD_CLIENT_ID}&redirect_uri=${encodeURIComponent(DISCORD_REDIRECT_URI)}&response_type=token&scope=${encodeURIComponent(DISCORD_SCOPE)}`;
+                    window.location.href = authUrl;
+                });
+            }
+        });
+    </script>
 </body>
 </html>
