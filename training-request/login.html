@@ -3,201 +3,337 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>FSRP Training - Login</title>
+    <title>Login - FSRP Training Request</title>
+    <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
     <style>
-        :root {
-            --primary: #4a6fa5;
-            --primary-dark: #3a5a80;
-            --background: #f0f2f5;
-            --text: #333;
-            --white: #fff;
-        }
-        
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-        }
-        
         body {
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-            background: var(--background);
-            color: var(--text);
-            line-height: 1.6;
+            background: linear-gradient(135deg, #1a202c 0%, #2d3748 100%);
             min-height: 100vh;
             display: flex;
-            justify-content: center;
             align-items: center;
-            padding: 20px;
+            justify-content: center;
+            padding: 1rem;
         }
-        
         .login-container {
-            background: var(--white);
-            border-radius: 10px;
-            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
-            padding: 40px;
+            background: rgba(255, 255, 255, 0.95);
+            border-radius: 12px;
+            box-shadow: 0 10px 25px rgba(0, 0, 0, 0.2);
             width: 100%;
-            max-width: 450px;
+            max-width: 400px;
+            padding: 2.5rem;
             text-align: center;
+            position: relative;
+            overflow: hidden;
         }
-        
-        .login-logo {
+        .login-container::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 5px;
+            background: linear-gradient(90deg, #4f46e5, #7c3aed);
+        }
+        .logo {
             width: 120px;
-            margin-bottom: 20px;
+            margin: 0 auto 1.5rem;
+            display: block;
         }
-        
-        h1 {
-            color: var(--primary);
-            margin-bottom: 10px;
-            font-size: 2rem;
+        .login-title {
+            color: #1a202c;
+            font-size: 1.75rem;
+            font-weight: 700;
+            margin-bottom: 1.5rem;
         }
-        
-        p {
-            color: #666;
-            margin-bottom: 30px;
+        .login-subtitle {
+            color: #4a5568;
+            margin-bottom: 2rem;
+            line-height: 1.5;
         }
-        
-        .btn {
-            display: inline-block;
-            background: var(--primary);
-            color: white;
-            padding: 12px 30px;
-            border-radius: 6px;
-            text-decoration: none;
-            font-weight: 600;
-            transition: all 0.3s ease;
-            border: none;
-            cursor: pointer;
-            font-size: 1rem;
+        .code-input {
+            font-size: 1.5rem;
+            letter-spacing: 0.5rem;
+            text-align: center;
+            padding: 0.75rem;
             width: 100%;
             max-width: 250px;
+            margin: 0 auto 1.5rem;
+            border: 2px solid #e2e8f0;
+            border-radius: 8px;
+            transition: all 0.2s ease;
         }
-        
-        .btn:hover {
-            background: var(--primary-dark);
-            transform: translateY(-2px);
-            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+        .code-input:focus {
+            outline: none;
+            border-color: #4f46e5;
+            box-shadow: 0 0 0 3px rgba(79, 70, 229, 0.2);
         }
-        
+        .login-btn {
+            background: #4f46e5;
+            color: white;
+            padding: 0.75rem 1.5rem;
+            border-radius: 8px;
+            font-weight: 600;
+            transition: all 0.2s ease;
+            margin: 0 auto 1.5rem;
+            width: 100%;
+            max-width: 280px;
+            border: none;
+            cursor: pointer;
+            display: block;
+        }
+        .login-btn:hover {
+            background: #4338ca;
+            transform: translateY(-1px);
+            box-shadow: 0 4px 12px rgba(79, 70, 229, 0.2);
+        }
+        .login-btn:disabled {
+            background: #cbd5e0;
+            cursor: not-allowed;
+            transform: none;
+            box-shadow: none;
+        }
+        .login-footer {
+            margin-top: 2rem;
+            color: #718096;
+            font-size: 0.875rem;
+        }
+        .login-footer a {
+            color: #4f46e5;
+            text-decoration: none;
+            font-weight: 500;
+        }
+        .login-footer a:hover {
+            text-decoration: underline;
+        }
+        .error-message {
+            color: #e53e3e;
+            background-color: #fff5f5;
+            border: 1px solid #fed7d7;
+            padding: 0.75rem 1rem;
+            border-radius: 8px;
+            margin-bottom: 1.5rem;
+            display: none;
+        }
+        .success-message {
+            color: #38a169;
+            background-color: #f0fff4;
+            border: 1px solid #c6f6d5;
+            padding: 0.75rem 1rem;
+            border-radius: 8px;
+            margin-bottom: 1.5rem;
+            display: none;
+        }
+        .code-instructions {
+            background: #f7fafc;
+            border: 1px solid #e2e8f0;
+            border-radius: 8px;
+            padding: 1rem;
+            margin-bottom: 1.5rem;
+            text-align: left;
+            font-size: 0.875rem;
+            color: #4a5568;
+        }
+        .code-instructions ol {
+            padding-left: 1.25rem;
+            margin: 0.5rem 0;
+        }
+        .code-instructions li {
+            margin-bottom: 0.5rem;
+        }
         @media (max-width: 480px) {
             .login-container {
-                padding: 30px 20px;
+                margin: 0.5rem;
+                padding: 1.5rem 1rem;
             }
-            
-            h1 {
-                font-size: 1.5rem;
+            .code-input {
+                font-size: 1.25rem;
+                padding: 0.5rem;
+                max-width: 200px;
             }
         }
     </style>
 </head>
 <body>
     <div class="login-container">
-        <h1>Welcome to FSRP Training</h1>
-        <p>Click below to access the training application</p>
-        <a href="#" id="discordLoginBtn" class="btn">
-            <i class="fab fa-discord"></i> Login with Discord
-        </a>
-        <div id="logoutSection" style="margin-top: 15px; display: none;">
-            <p>You are already logged in.</p>
-            <button id="logoutBtn" class="btn" style="background: #e74c3c; margin-top: 10px;">
-                <i class="fas fa-sign-out-alt"></i> Logout
+        <img src="https://i.imgur.com/your-logo.png" alt="FSRP Logo" class="logo">
+        <h1 class="login-title">Welcome Back</h1>
+        <p class="login-subtitle">Enter your one-time login code</p>
+        
+        <div id="errorMessage" class="error-message"></div>
+        <div id="successMessage" class="success-message"></div>
+        
+        <div class="code-instructions">
+            <p><strong>To log in:</strong></p>
+            <ol>
+                <li>Join our Discord server if you haven't already</li>
+                <li>Send <code>/getlogincode</code> in any channel</li>
+                <li>Enter the 6-digit code you receive below</li>
+            </ol>
+        </div>
+        
+        <form id="loginForm">
+            <input 
+                type="text" 
+                id="loginCode" 
+                class="code-input" 
+                placeholder="000000" 
+                maxlength="6"
+                pattern="\d{6}"
+                inputmode="numeric"
+                required
+            >
+            <button type="submit" class="login-btn" id="loginBtn">
+                Verify Code
             </button>
+        </form>
+        
+        <div class="login-footer">
+            Need help? <a href="https://discord.gg/your-invite-link" target="_blank">Join our Discord</a>
         </div>
     </div>
-    <script>
-        // Discord OAuth2 Configuration with PKCE
-        const DISCORD_CLIENT_ID = '1381993589663338637';
-        const DISCORD_REDIRECT_URI = 'https://florida-state-roleplay.pages.dev/training-request/auth/discord/callback.html';
-        const DISCORD_SCOPE = 'identify email guilds';
-        const RESPONSE_TYPE = 'code';
-        const CODE_CHALLENGE_METHOD = 'S256';
-        
-        // Generate a secure random string for the code verifier
-        function generateRandomString(length) {
-            const array = new Uint8Array(length);
-            window.crypto.getRandomValues(array);
-            return Array.from(array, byte => byte.toString(16).padStart(2, '0')).join('');
-        }
-        
-        // Generate a code verifier and challenge
-        async function generatePKCECodes() {
-            const codeVerifier = generateRandomString(128);
-            const encoder = new TextEncoder();
-            const data = encoder.encode(codeVerifier);
-            const hash = await window.crypto.subtle.digest('SHA-256', data);
-            const codeChallenge = btoa(String.fromCharCode(...new Uint8Array(hash)))
-                .replace(/\+/g, '-')
-                .replace(/\//g, '_')
-                .replace(/=+$/, '');
-                
-            return { codeVerifier, codeChallenge };
-        }
 
-        // Initialize the login page
+    <script>
         document.addEventListener('DOMContentLoaded', () => {
-            const loginBtn = document.getElementById('discordLoginBtn');
-            const logoutBtn = document.getElementById('logoutBtn');
-            const logoutSection = document.getElementById('logoutSection');
-            
-            // Check if user is already logged in
-            const userData = sessionStorage.getItem('userData');
-            if (userData) {
-                // Show logout section and hide login button
-                if (loginBtn) loginBtn.style.display = 'none';
-                if (logoutSection) logoutSection.style.display = 'block';
-                
-                // Handle logout
-                if (logoutBtn) {
-                    logoutBtn.addEventListener('click', (e) => {
-                        e.preventDefault();
-                        sessionStorage.removeItem('userData');
-                        sessionStorage.removeItem('redirectAfterLogin');
-                        window.location.reload();
-                    });
-                }
-                return;
+            const loginForm = document.getElementById('loginForm');
+            const loginCodeInput = document.getElementById('loginCode');
+            const loginBtn = document.getElementById('loginBtn');
+            const errorMessage = document.getElementById('errorMessage');
+            const successMessage = document.getElementById('successMessage');
+
+            // Auto-advance input fields for better UX
+            if (loginCodeInput) {
+                loginCodeInput.addEventListener('input', (e) => {
+                    // Only allow numbers
+                    e.target.value = e.target.value.replace(/[^0-9]/g, '');
+                });
             }
 
-            // Set up Discord login button
-            if (loginBtn) {
-                loginBtn.addEventListener('click', async () => {
-                    // Clear any existing storage
-                    sessionStorage.clear();
-                    localStorage.clear();
+            // Handle form submission
+            if (loginForm) {
+                loginForm.addEventListener('submit', async (e) => {
+                    e.preventDefault();
                     
-                    // Set a test value to verify storage is working
-                    sessionStorage.setItem('test', 'test-value');
+                    const code = loginCodeInput.value.trim();
                     
-                    // Log the current URL and storage state
-                    console.log('Current URL:', window.location.href);
-                    console.log('Session Storage:', JSON.stringify(sessionStorage, null, 2));
+                    if (code.length !== 6 || !/^\d+$/.test(code)) {
+                        showError('Please enter a valid 6-digit code');
+                        return;
+                    }
                     
-                    // Generate PKCE codes and build the authorization URL
-                    const { codeVerifier, codeChallenge } = await generatePKCECodes();
+                    // Disable the button and show loading state
+                    loginBtn.disabled = true;
+                    loginBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Verifying...';
                     
-                    // Store the code verifier for later use
-                    sessionStorage.setItem('code_verifier', codeVerifier);
+                    try {
+                        // In a real implementation, you would verify the code with your server
+                        // For now, we'll simulate a successful verification
+                        const response = await verifyLoginCode(code);
+                        
+                        if (response.success) {
+                            // Store login state
+                            sessionStorage.setItem('isLoggedIn', 'true');
+                            sessionStorage.setItem('userData', JSON.stringify(response.user));
+                            
+                            // Redirect to dashboard
+                            window.location.href = '/training-request/index.html';
+                        } else {
+                            showError(response.message || 'Invalid code. Please try again.');
+                            loginCodeInput.focus();
+                        }
+                    } catch (error) {
+                        console.error('Login error:', error);
+                        showError('An error occurred. Please try again.');
+                    } finally {
+                        // Re-enable the button
+                        loginBtn.disabled = false;
+                        loginBtn.textContent = 'Verify Code';
+                    }
+                });
+            }
+            
+            // Show error message
+            function showError(message) {
+                errorMessage.textContent = message;
+                errorMessage.style.display = 'block';
+                successMessage.style.display = 'none';
+                
+                // Auto-hide error after 5 seconds
+                setTimeout(() => {
+                    errorMessage.style.display = 'none';
+                }, 5000);
+            }
+            
+            // Show success message
+            function showSuccess(message) {
+                successMessage.textContent = message;
+                successMessage.style.display = 'block';
+                errorMessage.style.display = 'none';
+                
+                // Auto-hide success after 5 seconds
+                setTimeout(() => {
+                    successMessage.style.display = 'none';
+                }, 5000);
+            }
+            
+            // Function to verify the login code with the API
+            async function verifyLoginCode(code) {
+                try {
+                    // In a real implementation, you would get the Discord user ID from the bot
+                    // For now, we'll use a placeholder
+                    const userId = 'discord-user-id';
                     
-                    // Set admin flow flag if coming from admin page
-                    const isAdminFlow = window.location.href.includes('admin.html');
-                    sessionStorage.setItem('isAdminFlow', isAdminFlow);
-                    
-                    // Build the authorization URL
-                    const params = new URLSearchParams({
-                        client_id: DISCORD_CLIENT_ID,
-                        redirect_uri: DISCORD_REDIRECT_URI,
-                        response_type: RESPONSE_TYPE,
-                        scope: DISCORD_SCOPE,
-                        code_challenge: codeChallenge,
-                        code_challenge_method: CODE_CHALLENGE_METHOD
+                    const response = await fetch('http://localhost:3001/api/verify-code', {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json',
+                        },
+                        body: JSON.stringify({
+                            code,
+                            userId
+                        })
                     });
                     
-                    const authUrl = `https://discord.com/oauth2/authorize?${params.toString()}`;
+                    const data = await response.json();
                     
-                    console.log('Redirecting to Discord OAuth2:', authUrl);
-                    window.location.href = authUrl;
-                });
+                    if (!response.ok) {
+                        return {
+                            success: false,
+                            message: data.message || 'Failed to verify code'
+                        };
+                    }
+                    
+                    // For demo purposes, we'll use a mock user
+                    // In a real implementation, you would get this from your database
+                    return {
+                        success: true,
+                        user: {
+                            id: data.userId,
+                            username: 'DiscordUser',
+                            discriminator: '1234',
+                            avatar: null,
+                            isAdmin: false
+                        }
+                    };
+                    
+                } catch (error) {
+                    console.error('Error verifying code:', error);
+                    return {
+                        success: false,
+                        message: 'Failed to connect to the server. Please try again later.'
+                    };
+                }
+            }
+            
+            // Check if user is already logged in
+            const isLoggedIn = sessionStorage.getItem('isLoggedIn') === 'true';
+            if (isLoggedIn) {
+                window.location.href = '/training-request/index.html';
+            } else {
+                // Focus the code input when the page loads
+                if (loginCodeInput) {
+                    loginCodeInput.focus();
+                }
             }
         });
     </script>
