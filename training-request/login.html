@@ -1,0 +1,110 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Login - FSRP Training</title>
+    <link rel="stylesheet" href="styles.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <style>
+        .login-container {
+            max-width: 400px;
+            margin: 5rem auto;
+            padding: 2rem;
+            background: white;
+            border-radius: 10px;
+            box-shadow: 0 0 20px rgba(0, 0, 0, 0.1);
+            text-align: center;
+        }
+        
+        .login-logo {
+            width: 120px;
+            margin-bottom: 1.5rem;
+        }
+        
+        .login-title {
+            margin-bottom: 2rem;
+            color: #2c3e50;
+        }
+        
+        .btn-discord {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            gap: 10px;
+            background: #5865F2;
+            color: white;
+            padding: 12px 24px;
+            border-radius: 4px;
+            text-decoration: none;
+            font-weight: 500;
+            transition: background 0.2s;
+            border: none;
+            cursor: pointer;
+            width: 100%;
+            font-size: 16px;
+        }
+        
+        .btn-discord:hover {
+            background: #4752c4;
+        }
+        
+        .login-footer {
+            margin-top: 2rem;
+            color: #7f8c8d;
+            font-size: 0.9rem;
+        }
+    </style>
+</head>
+<body>
+    <div class="login-container">
+        <h1 class="login-title">FSRP Training Portal</h1>
+        <p>Please sign in with your Discord account to continue</p>
+        
+        <button id="discordLogin" class="btn-discord" onclick="window.location.href='https://discord.com/api/oauth2/authorize?client_id=1381993589663338637&redirect_uri=' + encodeURIComponent(window.location.origin + '/auth/discord/callback') + '&response_type=code&scope=identify%20email%20guilds'">
+            <i class="fab fa-discord"></i> Continue with Discord
+        </button>
+        
+        <div class="login-footer">
+            <p>By signing in, you agree to our terms of service.</p>
+        </div>
+    </div>
+
+    <script src="js/config.js"></script>
+    <script>
+        // Discord OAuth2 Configuration from config
+        const DISCORD_CLIENT_ID = window.appConfig.DISCORD_CLIENT_ID;
+        const DISCORD_REDIRECT_URI = encodeURIComponent(window.appConfig.DISCORD_REDIRECT_URI || window.location.origin + '/auth/discord/callback');
+        const DISCORD_SCOPE = 'identify email guilds';
+        
+        // Check if we have a valid config
+        if (!DISCORD_CLIENT_ID) {
+            console.error('Error: Discord Client ID is not configured');
+            document.body.innerHTML = `
+                <div style="text-align: center; padding: 2rem; color: #721c24; background: #f8d7da; border: 1px solid #f5c6cb; border-radius: 4px; margin: 2rem;">
+                    <h2>Configuration Error</h2>
+                    <p>Discord Client ID is not configured. Please check your config.js file.</p>
+                </div>
+            `;
+        }
+        
+        // Check if user is already logged in
+        document.addEventListener('DOMContentLoaded', () => {
+            const user = JSON.parse(localStorage.getItem('user') || 'null');
+            const isAdmin = user && user.isAdmin;
+            
+            if (user) {
+                // Redirect based on admin status
+                const redirectPath = isAdmin ? 'admin.html' : 'index.html';
+                window.location.href = redirectPath;
+            }
+            
+            // Set up Discord login
+            document.getElementById('discordLogin').addEventListener('click', () => {
+                const authUrl = `https://discord.com/api/oauth2/authorize?client_id=${DISCORD_CLIENT_ID}&redirect_uri=${DISCORD_REDIRECT_URI}&response_type=code&scope=${DISCORD_SCOPE}`;
+                window.location.href = authUrl;
+            });
+        });
+    </script>
+</body>
+</html>

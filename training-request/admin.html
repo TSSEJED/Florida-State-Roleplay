@@ -1,0 +1,855 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Training Applications - Admin Dashboard</title>
+    <link rel="stylesheet" href="styles.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <style>
+        /* Notification Styles */
+        .notification {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            padding: 15px 25px;
+            border-radius: 8px;
+            color: white;
+            font-weight: 500;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+            transform: translateX(150%);
+            transition: transform 0.3s ease-in-out;
+            z-index: 2000;
+            max-width: 350px;
+            backdrop-filter: blur(10px);
+        }
+
+        .notification.show {
+            transform: translateX(0);
+        }
+
+        .notification.success {
+            background: rgba(46, 213, 115, 0.9);
+            border-left: 4px solid #20bf6b;
+        }
+
+        .notification.error {
+            background: rgba(255, 71, 87, 0.9);
+            border-left: 4px solid #eb3b5a;
+        }
+
+        .notification.warning {
+            background: rgba(255, 165, 2, 0.9);
+            border-left: 4px solid #fa8231;
+        }
+
+        .notification i {
+            font-size: 20px;
+        }
+
+        /* Admin specific styles */
+        .admin-container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 2rem;
+        }
+
+        .admin-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 2rem;
+            padding-bottom: 1rem;
+            border-bottom: 1px solid var(--border);
+        }
+
+        .status-badge {
+            display: inline-block;
+            padding: 0.25rem 0.5rem;
+            border-radius: 1rem;
+            font-size: 0.75rem;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .status-pending {
+            background-color: #fff3cd;
+            color: #856404;
+        }
+
+        .status-approved {
+            background-color: #d4edda;
+            color: #155724;
+        }
+
+        .status-denied {
+            background-color: #f8d7da;
+            color: #721c24;
+        }
+
+        .application-card {
+            background: var(--white);
+            border-radius: 8px;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+            margin-bottom: 1.5rem;
+            overflow: hidden;
+            transition: transform 0.2s, box-shadow 0.2s;
+            padding: 1.25rem;
+        }
+
+        .application-card:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+        }
+
+        .application-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 1rem;
+            padding-bottom: 0.75rem;
+            border-bottom: 1px solid var(--border);
+        }
+        
+        .applicant-info {
+            flex: 1;
+        }
+        
+        .applicant-name {
+            font-size: 1.25rem;
+            font-weight: 600;
+            margin: 0 0 0.25rem 0;
+            color: var(--dark);
+        }
+        
+        .applicant-discord {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            color: var(--gray);
+            font-size: 0.9rem;
+        }
+        
+        .application-actions {
+            display: flex;
+            gap: 0.5rem;
+        }
+
+        .application-body {
+            display: none; /* Hidden by default, shown in modal */
+        }
+
+        .application-footer {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-top: 1rem;
+            padding-top: 0.75rem;
+            border-top: 1px solid var(--border);
+            font-size: 0.85rem;
+            color: var(--gray);
+        }
+
+        .btn {
+            padding: 0.5rem 1rem;
+            border: none;
+            border-radius: 4px;
+            font-weight: 500;
+            cursor: pointer;
+            display: inline-flex;
+            align-items: center;
+            gap: 0.5rem;
+            transition: all 0.2s;
+        }
+
+        .btn-view {
+            background-color: var(--primary);
+            color: white;
+        }
+
+        .btn-approve {
+            background-color: #28a745;
+            color: white;
+        }
+
+        .btn-deny {
+            background-color: #dc3545;
+            color: white;
+        }
+
+        .btn-approve:hover {
+            background-color: #218838;
+        }
+
+        .btn-deny:hover {
+            background-color: #c82333;
+        }
+
+        .btn:disabled {
+            opacity: 0.65;
+            cursor: not-allowed;
+        }
+
+        .empty-state {
+            text-align: center;
+            padding: 3rem 1rem;
+            color: var(--gray);
+        }
+
+        .empty-state i {
+            font-size: 3rem;
+            margin-bottom: 1rem;
+            opacity: 0.5;
+        }
+
+        .filters {
+            display: flex;
+            gap: 1rem;
+            margin-bottom: 1.5rem;
+            flex-wrap: wrap;
+        }
+
+        .filter-group {
+            flex: 1;
+            min-width: 200px;
+        }
+
+        .filter-group label {
+            display: block;
+            margin-bottom: 0.5rem;
+            font-weight: 500;
+        }
+
+        .filter-group select,
+        .filter-group input {
+            width: 100%;
+            padding: 0.5rem;
+            border: 1px solid var(--border);
+            border-radius: 4px;
+            background-color: var(--white);
+        }
+
+        .application-details {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
+            gap: 1.5rem;
+            max-height: 60vh;
+            overflow-y: auto;
+            padding-right: 0.5rem;
+        }
+        
+        /* Modal Styles */
+        .modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.5);
+            z-index: 1000;
+            justify-content: center;
+            align-items: center;
+        }
+        
+        .modal-content {
+            background: white;
+            padding: 2rem;
+            border-radius: 8px;
+            max-width: 800px;
+            width: 90%;
+            max-height: 90vh;
+            overflow-y: auto;
+            position: relative;
+        }
+        
+        .close-modal {
+            position: absolute;
+            top: 1rem;
+            right: 1rem;
+            font-size: 1.5rem;
+            cursor: pointer;
+            background: none;
+            border: none;
+            color: var(--gray);
+        }
+
+        .detail-group {
+            margin-bottom: 1rem;
+        }
+
+        .detail-label {
+            font-size: 0.8rem;
+            color: var(--gray);
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            margin-bottom: 0.25rem;
+        }
+
+        .detail-value {
+            font-size: 1rem;
+            word-break: break-word;
+        }
+
+        @media (max-width: 768px) {
+            .admin-container {
+                padding: 1rem;
+            }
+            
+            .application-details {
+                grid-template-columns: 1fr;
+            }
+            
+            .filters {
+                flex-direction: column;
+            }
+        }
+    </style>
+</head>
+<body>
+    <!-- User Info Bar -->
+    <div id="userInfoBar" style="background: #2c3e50; color: white; padding: 0.5rem 2rem; display: flex; justify-content: space-between; align-items: center; font-size: 0.9rem;">
+        <div id="userGreeting">Welcome, Admin</div>
+        <div style="display: flex; gap: 1rem; align-items: center;">
+            <span id="userDiscordInfo"></span>
+            <a href="index.html" style="color: white; text-decoration: none;">
+                <i class="fas fa-home"></i> Home
+            </a>
+            <button id="logoutBtn" style="background: #e74c3c; color: white; border: none; padding: 0.3rem 0.8rem; border-radius: 4px; cursor: pointer; font-size: 0.8rem;">
+                <i class="fas fa-sign-out-alt"></i> Logout
+            </button>
+        </div>
+    </div>
+    <div class="admin-container">
+        <div class="admin-header">
+            <h1>Training Applications</h1>
+            <div class="filters">
+                <div class="filter-group">
+                    <label for="statusFilter">Status</label>
+                    <select id="statusFilter">
+                        <option value="all">All Applications</option>
+                        <option value="pending">Pending</option>
+                        <option value="approved">Approved</option>
+                        <option value="denied">Denied</option>
+                    </select>
+                </div>
+                <div class="filter-group">
+                    <label for="searchInput">Search</label>
+                    <input type="text" id="searchInput" placeholder="Search applications...">
+                </div>
+            </div>
+        </div>
+
+        <div id="applicationsList">
+        <!-- Applications will be dynamically inserted here -->
+        <div class="empty-state">
+            <i class="fas fa-inbox"></i>
+            <h3>No applications found</h3>
+            <p>Submitted training applications will appear here.</p>
+        </div>
+    </div>
+    
+    <!-- Application Details Modal -->
+    <div id="applicationModal" class="modal">
+        <div class="modal-content">
+            <button class="close-modal">&times;</button>
+            <div id="modalContent"></div>
+        </div>
+    </div>
+    
+    <!-- Notification Container -->
+    <div id="notification" class="notification">
+        <i class="fas fa-check-circle"></i>
+        <span id="notificationMessage">Notification message</span>
+    </div>
+    </div>
+
+    <script>
+        // Discord Webhook URLs
+        const DISCORD_WEBHOOKS = {
+            SUBMISSIONS: 'https://discord.com/api/webhooks/1380881442632110171/NvTtSHBGI0pRcMfw2NPGttzWOByl4wOv9XYib022fPtTRZlHggxF4s64LNpM2eSpPwhI', // #application-submissions
+            APPROVED: 'https://discord.com/api/webhooks/1380884180472430656/Av6NCISSqoJioZoVSN5Vb7ldtHf1ztvtOA1MkiroLzShKxs4FlawWGgPyIAaWdfIH-X4',   // #application-approved
+            DENIED: 'https://discord.com/api/webhooks/1380884370130206800/1LhQyXIFgQReyxzT-fpZJgyHsjf5VG4hZ6C486VmYqJoLnLN0dDsRrYc2iJQQBtW9JB2'    // #application-denied
+        };
+
+        // Send notification to Discord
+        async function sendDiscordNotification(webhookType, application) {
+            const webhookUrl = DISCORD_WEBHOOKS[webhookType];
+            if (!webhookUrl) {
+                console.error('Invalid webhook type:', webhookType);
+                return false;
+            }
+
+            let message = {};
+            const timestamp = new Date().toLocaleString();
+            const statusEmoji = webhookType === 'APPROVED' ? '✅' : '❌';
+            const statusText = webhookType === 'APPROVED' ? 'Approved' : 'Denied';
+            
+            // Get admin info from the application or use default
+            const adminInfo = application.processedBy || {};
+            const adminName = adminInfo.username || 'Unknown Admin';
+            const adminId = adminInfo.id ? ` (${adminInfo.id})` : '';
+            const adminMention = adminInfo.id ? `<@${adminInfo.id}>` : adminName;
+
+            if (webhookType === 'APPROVED' || webhookType === 'DENIED') {
+                // Get Discord ID from discordInfo if available (format: username#discriminator | ID)
+                let discordId = '';
+                if (application.discordInfo && application.discordInfo.includes('|')) {
+                    discordId = application.discordInfo.split('|').pop().trim();
+                }
+                
+                const applicantMention = discordId ? `<@${discordId}>` : application.applicantName || 'Applicant';
+                
+                message = {
+                    content: `${statusEmoji} **Application ${statusText}**\n` +
+                            `👤 **Applicant:** ${applicantMention}\n` +
+                            `📝 **Name:** ${application.applicantName || 'N/A'}\n` +
+                            `🆔 **Discord:** ${application.discordInfo || 'N/A'}\n` +
+                            `🕒 **Time:** ${timestamp}\n` +
+                            `👨‍💼 **Processed by:** ${adminMention}${adminId}\n` +
+                            `🔗 **[View Application](${window.location.origin}/admin.html#${application.id})**`
+                };
+                
+                // Add a mention for the applicant if we have their Discord ID
+                if (discordId) {
+                    message.content += `\n\n${applicantMention}, your application has been ${statusText.toLowerCase()}.`;
+                }
+            }
+
+            try {
+                const response = await fetch(webhookUrl, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(message)
+                });
+                
+                if (!response.ok) {
+                    throw new Error(`HTTP error! status: ${response.status}`);
+                }
+                
+                console.log(`Successfully sent ${webhookType} notification to Discord`);
+                return true;
+            } catch (error) {
+                console.error('Error sending to Discord:', error);
+                return false;
+            }
+        }
+
+        // Check authentication and admin status
+        document.addEventListener('DOMContentLoaded', () => {
+            const user = JSON.parse(localStorage.getItem('user') || 'null');
+            const userGreeting = document.getElementById('userGreeting');
+            const userDiscordInfo = document.getElementById('userDiscordInfo');
+            const logoutBtn = document.getElementById('logoutBtn');
+
+            // Redirect to login if not authenticated
+            if (!user) {
+                window.location.href = 'login.html';
+                return;
+            }
+
+            // Redirect to home if not admin
+            if (!user.isAdmin) {
+                alert('You do not have permission to access this page.');
+                window.location.href = 'index.html';
+                return;
+            }
+
+            // Update UI with user info
+            userGreeting.textContent = `Welcome, ${user.username || 'Admin'}`;
+            userDiscordInfo.textContent = `${user.username}${user.discriminator ? `#${user.discriminator}` : ''}`;
+
+            // Handle logout
+            logoutBtn.addEventListener('click', () => {
+                localStorage.removeItem('user');
+                window.location.href = 'login.html';
+            });
+        });
+
+        // Notification System
+        function showNotification(message, type = 'success') {
+            const notification = document.getElementById('notification');
+            const icon = notification.querySelector('i');
+            const messageEl = document.getElementById('notificationMessage');
+            
+            // Set message and type
+            messageEl.textContent = message;
+            
+            // Update icon and styles based on type
+            notification.className = 'notification';
+            notification.classList.add(type);
+            
+            // Set appropriate icon
+            if (type === 'success') {
+                icon.className = 'fas fa-check-circle';
+            } else if (type === 'error') {
+                icon.className = 'fas fa-times-circle';
+            } else if (type === 'warning') {
+                icon.className = 'fas fa-exclamation-triangle';
+            }
+            
+            // Show notification
+            notification.classList.add('show');
+            
+            // Auto-hide after 5 seconds
+            setTimeout(() => {
+                notification.classList.remove('show');
+            }, 5000);
+        }
+        
+        // Load applications from localStorage
+        function loadApplications() {
+            const applications = JSON.parse(localStorage.getItem('trainingApplications') || '[]');
+            const statusFilter = document.getElementById('statusFilter').value;
+            const searchQuery = document.getElementById('searchInput').value.toLowerCase();
+            
+            let filteredApplications = applications;
+            
+            // Apply status filter
+            if (statusFilter !== 'all') {
+                filteredApplications = filteredApplications.filter(app => app.status === statusFilter);
+            }
+            
+            // Apply search filter
+            if (searchQuery) {
+                filteredApplications = filteredApplications.filter(app => {
+                    return (
+                        (app.applicantName && app.applicantName.toLowerCase().includes(searchQuery)) ||
+                        (app.discordUsername && app.discordUsername.toLowerCase().includes(searchQuery)) ||
+                        (app.email && app.email.toLowerCase().includes(searchQuery))
+                    );
+                });
+            }
+            
+            // Sort by timestamp (newest first)
+            filteredApplications.sort((a, b) => new Date(b.timestamp) - new Date(a.timestamp));
+            
+            return filteredApplications;
+        }
+        
+        // Render applications list with compact cards
+        function renderApplications() {
+            const applications = loadApplications();
+            const applicationsList = document.getElementById('applicationsList');
+            
+            if (applications.length === 0) {
+                applicationsList.innerHTML = `
+                    <div class="empty-state">
+                        <i class="fas fa-inbox"></i>
+                        <h3>No applications found</h3>
+                        <p>No applications match your current filters.</p>
+                    </div>
+                `;
+                return;
+            }
+            
+            applicationsList.innerHTML = applications.map(application => {
+                const statusClass = `status-${application.status || 'pending'}`;
+                const formattedDate = new Date(application.timestamp).toLocaleString('en-US', {
+                    year: 'numeric',
+                    month: 'short',
+                    day: 'numeric',
+                    hour: '2-digit',
+                    minute: '2-digit'
+                });
+                
+                return `
+                    <div class="application-card" data-id="${application.id}">
+                        <div class="application-header">
+                            <div class="applicant-info">
+                                <div class="applicant-name">${application.applicantName || 'Unnamed Applicant'}</div>
+                                <div class="applicant-discord">
+                                    <i class="fab fa-discord"></i>
+                                    ${application.discordUsername || 'No Discord ID'}
+                                </div>
+                            </div>
+                            <div class="application-actions">
+                                <button class="btn btn-view" onclick="showApplicationDetails('${application.id}')">
+                                    <i class="fas fa-eye"></i> View
+                                </button>
+                                ${application.status === 'pending' ? `
+                                    <button class="btn btn-approve" onclick="event.stopPropagation(); updateApplicationStatus('${application.id}', 'approved')">
+                                        <i class="fas fa-check"></i> Approve
+                                    </button>
+                                    <button class="btn btn-deny" onclick="event.stopPropagation(); updateApplicationStatus('${application.id}', 'denied')">
+                                        <i class="fas fa-times"></i> Deny
+                                    </button>
+                                ` : ''}
+                            </div>
+                        </div>
+                        <div class="application-footer">
+                            <span class="status-badge ${statusClass}">
+                                ${application.status || 'pending'}
+                            </span>
+                            <span>Applied: ${formattedDate}</span>
+                        </div>
+                    </div>
+                `;
+            }).join('');
+        }
+        
+        // Show application details in modal
+        function showApplicationDetails(applicationId) {
+            const applications = JSON.parse(localStorage.getItem('trainingApplications') || '[]');
+            const application = applications.find(app => app.id === applicationId);
+            
+            if (!application) return;
+            
+            const statusClass = `status-${application.status || 'pending'}`;
+            const formattedDate = new Date(application.timestamp).toLocaleString();
+            const updatedAt = application.updatedAt ? new Date(application.updatedAt).toLocaleString() : 'N/A';
+            
+            // Split Discord info into name and ID if possible
+            let discordName = application.discordInfo || 'Not provided';
+            let discordID = '';
+            if (discordName.includes('|')) {
+                const parts = discordName.split('|').map(part => part.trim());
+                discordName = parts[0] || 'Not provided';
+                discordID = parts[1] || '';
+            }
+
+            // Split In-Game info into name and ID if possible
+            let inGameName = application.ingameInfo || 'Not provided';
+            let inGameID = '';
+            if (inGameName.includes('|')) {
+                const parts = inGameName.split('|').map(part => part.trim());
+                inGameName = parts[0] || 'Not provided';
+                inGameID = parts[1] || '';
+            }
+            
+            const modalContent = `
+                <div class="modal-header">
+                    <h2>${application.applicantName || 'Applicant'}'s Application</h2>
+                    <div style="display: flex; align-items: center; gap: 1rem; margin: 0.5rem 0 1.5rem;">
+                        <span class="status-badge ${statusClass}" style="font-size: 0.9rem;">
+                            ${application.status || 'pending'}
+                        </span>
+                        <span style="color: var(--gray); font-size: 0.9rem;">
+                            Applied: ${formattedDate}
+                        </span>
+                        ${application.updatedAt ? `
+                            <span style="color: var(--gray); font-size: 0.9rem;">
+                                • Updated: ${updatedAt}
+                            </span>
+                        ` : ''}
+                    </div>
+                </div>
+                <div class="application-details">
+                    <!-- Personal Information -->
+                    <div class="detail-group" style="grid-column: 1 / -1; margin-bottom: 1.5rem; padding-bottom: 1rem; border-bottom: 1px solid var(--border);">
+                        <h3 style="margin: 0 0 1rem 0; color: var(--primary);">Personal Information</h3>
+                        <div style="display: grid; grid-template-columns: repeat(auto-fill, minmax(250px, 1fr)); gap: 1rem;">
+                            <div>
+                                <div class="detail-label">Full Name</div>
+                                <div class="detail-value">${application.applicantName || 'Not provided'}</div>
+                            </div>
+                            <div>
+                                <div class="detail-label">Discord Name</div>
+                                <div class="detail-value">${discordName}</div>
+                            </div>
+                            ${discordID ? `
+                                <div>
+                                    <div class="detail-label">Discord ID</div>
+                                    <div class="detail-value">${discordID}</div>
+                                </div>
+                            ` : ''}
+                            <div>
+                                <div class="detail-label">In-Game Name</div>
+                                <div class="detail-value">${inGameName}</div>
+                            </div>
+                            ${inGameID ? `
+                                <div>
+                                    <div class="detail-label">In-Game ID</div>
+                                    <div class="detail-value">${inGameID}</div>
+                                </div>
+                            ` : ''}
+                        </div>
+                    </div>
+                    
+                    <!-- Training Skills Section -->
+                    <div class="detail-group" style="grid-column: 1 / -1;">
+                        <h3 style="margin: 0 0 1rem 0; color: var(--primary);">Training Skills</h3>
+                        <div style="display: flex; flex-direction: column; gap: 1.5rem;">
+                            <div>
+                                <div class="detail-label">1. Have you ever trained someone before? If yes, how did it go?</div>
+                                <div class="detail-value" style="white-space: pre-wrap;">${application.q1 || 'Not provided'}</div>
+                            </div>
+                            <div>
+                                <div class="detail-label">2. How would you explain the rules to a new moderator with no prior experience?</div>
+                                <div class="detail-value" style="white-space: pre-wrap;">${application.q2 || 'Not provided'}</div>
+                            </div>
+                            <div>
+                                <div class="detail-label">3. If a trainee keeps making the same mistake, how would you address it?</div>
+                                <div class="detail-value" style="white-space: pre-wrap;">${application.q3 || 'Not provided'}</div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- Leadership & Communication Section -->
+                    <div class="detail-group" style="grid-column: 1 / -1; margin-top: 1.5rem;">
+                        <h3 style="margin: 0 0 1rem 0; color: var(--primary);">Leadership & Communication</h3>
+                        <div style="display: flex; flex-direction: column; gap: 1.5rem;">
+                            <div>
+                                <div class="detail-label">4. How would you handle a situation where a trainee argues with you during training?</div>
+                                <div class="detail-value" style="white-space: pre-wrap;">${application.q4 || 'Not provided'}</div>
+                            </div>
+                            <div>
+                                <div class="detail-label">5. If two trainees are not getting along, how would you mediate the situation?</div>
+                                <div class="detail-value" style="white-space: pre-wrap;">${application.q5 || 'Not provided'}</div>
+                            </div>
+                            <div>
+                                <div class="detail-label">6. Can you maintain a calm and professional demeanor, even when dealing with difficult individuals?</div>
+                                <div class="detail-value" style="white-space: pre-wrap;">${application.q6 || 'Not provided'}</div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- Testing & Evaluation Section -->
+                    <div class="detail-group" style="grid-column: 1 / -1; margin-top: 1.5rem;">
+                        <h3 style="margin: 0 0 1rem 0; color: var(--primary);">Testing & Evaluation</h3>
+                        <div style="display: flex; flex-direction: column; gap: 1.5rem;">
+                            <div>
+                                <div class="detail-label">7. How would you assess whether a trainee is ready to become a full moderator?</div>
+                                <div class="detail-value" style="white-space: pre-wrap;">${application.q7 || 'Not provided'}</div>
+                            </div>
+                            <div>
+                                <div class="detail-label">8. Do you have any ideas for training sessions or mock scenarios to help evaluate their skills?</div>
+                                <div class="detail-value" style="white-space: pre-wrap;">${application.q8 || 'Not provided'}</div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- Reliability Section -->
+                    <div class="detail-group" style="grid-column: 1 / -1; margin-top: 1.5rem;">
+                        <h3 style="margin: 0 0 1rem 0; color: var(--primary);">Reliability</h3>
+                        <div style="display: flex; flex-direction: column; gap: 1.5rem;">
+                            <div>
+                                <div class="detail-label">9. Are you active enough to train moderators on a regular basis?</div>
+                                <div class="detail-value" style="white-space: pre-wrap;">${application.q9 || 'Not provided'}</div>
+                            </div>
+                            <div>
+                                <div class="detail-label">10. Would you be able to keep accurate records of who has been trained and who has not?</div>
+                                <div class="detail-value" style="white-space: pre-wrap;">${application.q10 || 'Not provided'}</div>
+                            </div>
+                        </div>
+                    </div>
+                <div class="modal-actions" style="margin-top: 1.5rem; padding-top: 1.5rem; border-top: 1px solid var(--border);">
+                    ${application.status === 'pending' ? `
+                        <div style="display: flex; gap: 0.75rem;">
+                            <button class="btn btn-approve" onclick="updateApplicationStatus('${application.id}', 'approved'); closeModal();">
+                                <i class="fas fa-check"></i> Approve Application
+                            </button>
+                            <button class="btn btn-deny" onclick="updateApplicationStatus('${application.id}', 'denied'); closeModal();">
+                                <i class="fas fa-times"></i> Deny Application
+                            </button>
+                        </div>
+                    ` : `
+                        <button class="btn" onclick="resetApplicationStatus('${application.id}'); closeModal();" style="background-color: var(--gray);">
+                            <i class="fas fa-undo"></i> Reset to Pending
+                        </button>
+                    `}
+                </div>
+            `;
+            
+            document.getElementById('modalContent').innerHTML = modalContent;
+            document.getElementById('applicationModal').style.display = 'flex';
+        }
+        
+        // Close modal
+        function closeModal() {
+            document.getElementById('applicationModal').style.display = 'none';
+        }
+        
+        // Close modal when clicking outside content
+        window.onclick = function(event) {
+            const modal = document.getElementById('applicationModal');
+            if (event.target === modal) {
+                closeModal();
+            }
+        };
+        
+        // Close modal with escape key
+        document.addEventListener('keydown', function(event) {
+            if (event.key === 'Escape') {
+                closeModal();
+            }
+        });
+        
+        // Update application status
+        async function updateApplicationStatus(applicationId, status) {
+            const applications = JSON.parse(localStorage.getItem('trainingApplications') || '[]');
+            const applicationIndex = applications.findIndex(app => app.id === applicationId);
+            const currentUser = JSON.parse(localStorage.getItem('user') || 'null');
+            
+            if (applicationIndex !== -1) {
+                const application = applications[applicationIndex];
+                application.status = status;
+                application.updatedAt = new Date().toISOString();
+                
+                // Store who processed this application
+                application.processedBy = {
+                    id: currentUser?.id || 'unknown',
+                    username: currentUser?.username || 'System',
+                    discriminator: currentUser?.discriminator || '0000',
+                    timestamp: new Date().toISOString()
+                };
+                
+                localStorage.setItem('trainingApplications', JSON.stringify(applications));
+                
+                // Re-render the applications list
+                renderApplications();
+                
+                // Show success notification
+                showNotification(`Application has been ${status} successfully.`, status === 'approved' ? 'success' : 'error');
+                
+                // Send Discord notification
+                try {
+                    const webhookType = status.toUpperCase();
+                    if (webhookType === 'APPROVED' || webhookType === 'DENIED') {
+                        // Add admin info to the application data
+                        application.processedBy = application.processedBy || {};
+                        application.processedBy.adminId = currentUser?.id;
+                        application.processedBy.adminName = currentUser?.username;
+                        await sendDiscordNotification(webhookType, application);
+                    }
+                } catch (error) {
+                    console.error('Error sending Discord notification:', error);
+                    // Don't show error to user, just log it
+                }
+            }
+        }
+        
+        // Reset application status to pending
+        function resetApplicationStatus(applicationId) {
+            if (confirm('Are you sure you want to reset this application to pending status?')) {
+                updateApplicationStatus(applicationId, 'pending');
+            }
+        }
+        
+        // Initialize the admin dashboard
+        document.addEventListener('DOMContentLoaded', () => {
+            // Render applications on page load
+            renderApplications();
+            
+            // Add event listeners for filters
+            document.getElementById('statusFilter').addEventListener('change', renderApplications);
+            document.getElementById('searchInput').addEventListener('input', renderApplications);
+            
+            // Close modal button
+            document.querySelector('.close-modal').addEventListener('click', closeModal);
+            
+            // Check if there are any applications
+            const applications = JSON.parse(localStorage.getItem('trainingApplications') || '[]');
+            if (applications.length === 0) {
+                console.log('No applications found in localStorage');
+            } else {
+                console.log(`Loaded ${applications.length} applications from localStorage`);
+            }
+        });
+    </script>
+</body>
+</html>

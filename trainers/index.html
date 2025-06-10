@@ -1,0 +1,134 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>FSRP Trainers Portal</title>
+    <link rel="stylesheet" href="styles.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="icon" href="logo.png" type="image/x-icon">
+</head>
+<body>
+    <div class="container">
+        <header>
+            <div class="logo-container">
+                <img src="logo.png" alt="FSRP Logo" class="logo">
+                <h1>FSRP Trainers Portal</h1>
+            </div>
+            <div class="header-actions">
+                <button id="join-game-btn" class="join-game-btn">
+                    <i class="fas fa-gamepad"></i> Join Game
+                </button>
+                <div class="theme-toggle">
+                    <i class="fas fa-moon"></i>
+                    <i class="fas fa-sun"></i>
+                    <div class="toggle-ball"></div>
+                </div>
+            </div>
+        </header>
+
+        <main>
+            <div class="document-section">
+                <h2><i class="fas fa-file-pdf"></i> Training Documents</h2>
+                <p>Welcome to the FSRP Trainers Portal. As a trainer, you have access to all training materials.</p>
+                
+                <div class="document-cards">
+                    <div class="document-card">
+                        <div class="document-info">
+                            <h3><i class="fas fa-book"></i> Full Staff Training Document</h3>
+                            <p>Comprehensive training materials for staff members.</p>
+                            <p>Note: This document contains sensitive information and should be used with caution.</p>
+                            <div class="document-actions">
+                                <button class="view-btn" data-pdf="Full staff training document.pdf" data-title="Full Staff Training Document">
+                                    <i class="fas fa-eye"></i> View Document
+                                </button>
+                                <a href="Full staff training document.pdf" download class="download-btn mobile-only">
+                                    <i class="fas fa-download"></i> Download PDF
+                                </a>
+                            </div>
+                            <div class="document-author">
+                                <small>Created by: <a href="https://sejed.pages.dev" target="_blank">Sejed TRABELLSSI</a></small>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="document-card">
+                        <div class="document-info">
+                            <h3><i class="fas fa-graduation-cap"></i> Trainer Information Document</h3>
+                            <p>Essential information and guidelines for FSRP trainers.</p>
+                            <div class="document-actions">
+                                <button class="view-btn" data-pdf="Trainer Guide for FSRP (2).pdf" data-title="Trainer Information Document" id="trainer-info-btn">
+                                    <i class="fas fa-eye"></i> View Document
+                                </button>
+                                <a href="Trainer Guide for FSRP (2).pdf" download class="download-btn mobile-only">
+                                    <i class="fas fa-download"></i> Download PDF
+                                </a>
+                            </div>
+                            <div class="document-author">
+                                <small>Created by: <a href="https://discord.com/users/1291368989070463011" target="_blank">Sadxx</a></small>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="document-card">
+                        <div class="document-info">
+                            <h3><i class="fas fa-exclamation-triangle"></i> Staff Warning Policy</h3>
+                            <p>Important warning policies that all staff must adhere to.</p>
+                            <div class="document-actions">
+                                <button class="view-btn" data-pdf="STAFF WARNING POLICY DOCUMENT.pdf" data-title="Staff Warning Policy">
+                                    <i class="fas fa-eye"></i> View Document
+                                </button>
+                                <a href="STAFF WARNING POLICY DOCUMENT.pdf" download class="download-btn mobile-only">
+                                    <i class="fas fa-download"></i> Download PDF
+                                </a>
+                            </div>
+                            <div class="document-author">
+                                <small>Created by: <a href="https://discord.com/users/1291368989070463011" target="_blank">Sadxx</a></small>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div id="pdf-embed" class="pdf-embed hidden">
+                <div class="pdf-header">
+                    <h3 id="current-document-title">Document Viewer</h3>
+                    <div class="pdf-controls">
+                        <div class="quick-access-menu">
+                            <button id="full-training-btn" class="quick-access-btn" data-pdf="Full staff training document.pdf" data-title="Full Staff Training Document">
+                                <i class="fas fa-book"></i> Training Doc
+                            </button>
+                            <button id="trainer-info-quick-btn" class="quick-access-btn" data-pdf="Trainer Guide for FSRP (2).pdf" data-title="Trainer Information Document">
+                                <i class="fas fa-graduation-cap"></i> Trainer Info
+                            </button>
+                            <button id="warning-policy-btn" class="quick-access-btn" data-pdf="STAFF WARNING POLICY DOCUMENT.pdf" data-title="Staff Warning Policy">
+                                <i class="fas fa-exclamation-triangle"></i> Warning Policy
+                            </button>
+                        </div>
+                        <div class="mobile-pdf-controls">
+                            <a id="open-in-browser" href="" target="_blank" class="mobile-pdf-btn">
+                                <i class="fas fa-external-link-alt"></i> Open in Browser
+                            </a>
+                        </div>
+                        <button id="close-pdf" class="close-btn"><i class="fas fa-times"></i></button>
+                    </div>
+                </div>
+                <div class="pdf-container">
+                    <iframe id="pdf-iframe" src="" frameborder="0"></iframe>
+                    <div id="mobile-pdf-message" class="mobile-pdf-message hidden">
+                        <i class="fas fa-mobile-alt"></i>
+                        <p>For better viewing on mobile devices, please use the "Open in Browser" option above.</p>
+                    </div>
+                </div>
+            </div>
+        </main>
+
+        <footer>
+            <p>&copy; 2025 FSRP | Designed by <a href="https://sejed.pages.dev" target="_blank">Sejed TRABELLSSI</a></p>
+            <div class="watermark">FSRP Trainers Portal</div>
+        </footer>
+    </div>
+
+    <script src="script.js"></script>
+</body>
+</html>
