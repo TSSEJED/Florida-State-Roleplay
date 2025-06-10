@@ -146,13 +146,16 @@
                     }
                 }
                 
-                // Redirect based on user role
-                if (isAdmin) {
+                // Clear the redirect from localStorage
+                localStorage.removeItem('redirectAfterLogin');
+                
+                // Redirect based on user role and requested page
+                if (isAdmin && (redirectPath === '/admin' || isAdminFlow)) {
                     console.log('Admin user, redirecting to admin dashboard');
                     window.location.href = `${baseUrl}/admin`;
                 } else {
-                    console.log('Regular user, redirecting to index');
-                    window.location.href = `${baseUrl}/index`;
+                    console.log('Redirecting to:', redirectPath);
+                    window.location.href = `${baseUrl}${redirectPath}`.replace('//', '/');
                 }
 
             } catch (err) {

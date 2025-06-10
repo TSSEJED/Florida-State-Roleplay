@@ -241,13 +241,12 @@
         });
 
         function initiateDiscordLogin() {
-            // Store the redirect URL if provided
+            // Store the redirect URL if provided, otherwise default to /index
             const urlParams = new URLSearchParams(window.location.search);
-            const redirectTo = urlParams.get('redirect');
+            let redirectTo = urlParams.get('redirect') || '/index';
             
-            if (redirectTo) {
-                localStorage.setItem('redirectAfterLogin', redirectTo);
-            }
+            // Store the redirect URL in localStorage
+            localStorage.setItem('redirectAfterLogin', redirectTo);
 
             // Generate random state for CSRF protection
             const state = Math.random().toString(36).substring(2);
