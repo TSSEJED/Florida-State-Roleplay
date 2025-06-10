@@ -3,236 +3,49 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Login - FSRP Training</title>
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <title>FSRP Training</title>
     <style>
-        :root {
-            --primary: #4a6fa5;
-            --primary-dark: #3a5a80;
-            --secondary: #6c757d;
-            --success: #28a745;
-            --danger: #dc3545;
-            --light: #f8f9fa;
-            --dark: #343a40;
-            --border: #dee2e6;
-            --white: #ffffff;
-        }
-
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-        }
-
         body {
             font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-            background: #f5f7fa;
-            color: #333;
-            line-height: 1.6;
-        }
-
-        .login-container {
+            margin: 0;
+            padding: 0;
             display: flex;
             justify-content: center;
             align-items: center;
             min-height: 100vh;
-            padding: 2rem;
+            background: #f5f7fa;
         }
-
-        .login-box {
-            background: var(--white);
-            border-radius: 8px;
-            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
-            width: 100%;
-            max-width: 400px;
-            overflow: hidden;
-        }
-
-        .login-header {
-            background: var(--primary);
-            color: white;
-            padding: 2rem;
+        .container {
             text-align: center;
-        }
-
-        .login-header h1 {
-            font-size: 1.8rem;
-            margin-bottom: 0.5rem;
-        }
-
-        .login-header p {
-            opacity: 0.9;
-            font-size: 0.9rem;
-        }
-
-        .login-body {
             padding: 2rem;
         }
-
-        .btn-discord {
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            gap: 10px;
-            width: 100%;
-            padding: 0.8rem;
-            background: #5865F2;
+        h1 {
+            color: #4a6fa5;
+            margin-bottom: 1rem;
+        }
+        .btn {
+            display: inline-block;
+            padding: 12px 24px;
+            background: #4a6fa5;
             color: white;
-            border: none;
+            text-decoration: none;
             border-radius: 4px;
-            font-size: 1rem;
             font-weight: 600;
-            cursor: pointer;
-            transition: background 0.2s;
-            text-decoration: none;
-            margin-bottom: 1rem;
+            transition: background 0.3s;
         }
-
-        .btn-discord:hover {
-            background: #4752c4;
-        }
-
-        .divider {
-            display: flex;
-            align-items: center;
-            text-align: center;
-            margin: 1.5rem 0;
-            color: var(--secondary);
-            font-size: 0.9rem;
-        }
-
-        .divider::before,
-        .divider::after {
-            content: '';
-            flex: 1;
-            border-bottom: 1px solid var(--border);
-        }
-
-        .divider:not(:empty)::before {
-            margin-right: 1rem;
-        }
-
-        .divider:not(:empty)::after {
-            margin-left: 1rem;
-        }
-
-        .admin-login {
-            text-align: center;
-            margin-top: 1.5rem;
-            padding-top: 1.5rem;
-            border-top: 1px solid var(--border);
-        }
-
-        .admin-login p {
-            margin-bottom: 1rem;
-            color: var(--secondary);
-            font-size: 0.9rem;
-        }
-
-        .btn-admin {
-            display: inline-flex;
-            align-items: center;
-            gap: 8px;
-            padding: 0.6rem 1.2rem;
-            background: var(--secondary);
-            color: white;
-            border: none;
-            border-radius: 4px;
-            font-size: 0.9rem;
-            font-weight: 500;
-            cursor: pointer;
-            transition: background 0.2s;
-            text-decoration: none;
-        }
-
-        .btn-admin:hover {
-            background: #5a6268;
-        }
-
-        .error-message {
-            color: var(--danger);
-            background: #f8d7da;
-            border: 1px solid #f5c6cb;
-            padding: 0.75rem;
-            border-radius: 4px;
-            margin-bottom: 1.5rem;
-            font-size: 0.9rem;
-            display: none;
-        }
-
-        @media (max-width: 480px) {
-            .login-container {
-                padding: 1rem;
-            }
-            
-            .login-header {
-                padding: 1.5rem 1rem;
-            }
-            
-            .login-body {
-                padding: 1.5rem 1rem;
-            }
+        .btn:hover {
+            background: #3a5a80;
         }
     </style>
 </head>
 <body>
-    <div class="login-container">
-        <div class="login-box">
-            <div class="login-header">
-                <h1>Welcome Back</h1>
-                <p>Sign in to access the FSRP Training System</p>
-            </div>
-            <div class="login-body">
-                <div id="errorMessage" class="error-message"></div>
-                
-                <a href="#" id="discordLogin" class="btn-discord">
-                    <i class="fab fa-discord"></i>
-                    Sign in with Discord
-                </a>
-                
-                <div class="divider">OR</div>
-                
-                <div class="admin-login">
-                    <p>Are you an administrator?</p>
-                    <a href="loginadmin.html" class="btn-admin">
-                        <i class="fas fa-lock"></i>
-                        Admin Login
-                    </a>
-                </div>
-            </div>
-        </div>
+    <div class="container">
+        <h1>Welcome to FSRP Training</h1>
+        <p>Click the button below to continue</p>
+        <a href="index.html" class="btn">Enter Application</a>
     </div>
-
-    <script>
-        document.addEventListener('DOMContentLoaded', () => {
-            // Check for any stored error messages
-            const loginError = sessionStorage.getItem('loginError');
-            if (loginError) {
-                const errorEl = document.getElementById('errorMessage');
-                if (errorEl) {
-                    errorEl.textContent = loginError;
-                    errorEl.style.display = 'block';
-                }
-                sessionStorage.removeItem('loginError');
-            }
-
-            // Check if already logged in
-            const isAuthenticated = sessionStorage.getItem('userAuthenticated');
-            const userData = sessionStorage.getItem('userData');
-            
-            if (isAuthenticated && userData) {
-                try {
-                    const user = JSON.parse(userData);
-                    console.log('User already authenticated:', user.username);
-                    window.location.href = 'index.html';
-                    return;
-                } catch (e) {
-                    console.error('Error parsing user data:', e);
-                    sessionStorage.clear();
-                }
-            }
-
-            // Check if user is already logged in
+</body>
+</html>
             const token = localStorage.getItem('token');
             if (token) {
                 // Redirect to appropriate page based on user role
