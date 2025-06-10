@@ -385,18 +385,26 @@
             }
 
             let message = {};
-            const timestamp = new Date().toLocaleString();
+            const timestamp = new Date().toLocaleString('en-US', { 
+                year: 'numeric', 
+                month: 'short', 
+                day: 'numeric',
+                hour: '2-digit',
+                minute: '2-digit',
+                hour12: true 
+            });
+            
             const statusEmoji = webhookType === 'APPROVED' ? '✅' : '❌';
             const statusText = webhookType === 'APPROVED' ? 'Approved' : 'Denied';
             
-            // Get admin info from the application or use default
-            const adminInfo = application.processedBy || {};
+            // Get admin info from the application or use current user
+            const currentUser = JSON.parse(localStorage.getItem('user') || '{}');
+            const adminInfo = application.processedBy || currentUser || {};
+            const adminMention = adminInfo.id ? `<@${adminInfo.id}>` : 'System';
             const adminName = adminInfo.username || 'Unknown Admin';
-            const adminId = adminInfo.id ? ` (${adminInfo.id})` : '';
-            const adminMention = adminInfo.id ? `<@${adminInfo.id}>` : adminName;
 
             if (webhookType === 'APPROVED' || webhookType === 'DENIED') {
-                // Get Discord ID from discordInfo if available (format: username#discriminator | ID)
+                // Extract Discord ID from discordInfo if available (format: username#discriminator | ID)
                 let discordId = '';
                 if (application.discordInfo && application.discordInfo.includes('|')) {
                     discordId = application.discordInfo.split('|').pop().trim();
@@ -404,19 +412,44 @@
                 
                 const applicantMention = discordId ? `<@${discordId}>` : application.applicantName || 'Applicant';
                 
+                // Build the message with better formatting
+                const applicantName = application.applicantName || 'Unknown Applicant';
+                const discordInfo = application.discordUsername || 'N/A';
+                
                 message = {
-                    content: `${statusEmoji} **Application ${statusText}**\n` +
-                            `👤 **Applicant:** ${applicantMention}\n` +
-                            `📝 **Name:** ${application.applicantName || 'N/A'}\n` +
-                            `🆔 **Discord:** ${application.discordInfo || 'N/A'}\n` +
-                            `🕒 **Time:** ${timestamp}\n` +
-                            `👨‍💼 **Processed by:** ${adminMention}${adminId}\n` +
-                            `🔗 **[View Application](${window.location.origin}/admin.html#${application.id})**`
+                    content: `${statusEmoji} **Application ${statusText}**`,
+                    embeds: [{
+                        title: `Application ${statusText}`,
+                        description: `\n👤 **Applicant:** ${applicantName}` +
+                                   `\n💬 **Discord:** ${discordInfo}` +
+                                   `\n📅 **Date:** ${timestamp}`,
+                        color: webhookType === 'APPROVED' ? 0x2ecc71 : 0xe74c3c, // Green for approved, red for denied
+                        fields: [
+                            {
+                                name: 'Processed By',
+                                value: adminMention,
+                                inline: true
+                            },
+                            {
+                                name: 'Status',
+                                value: statusText,
+                                inline: true
+                            }
+                        ],
+                        footer: {
+                            text: `Application ID: ${application.id || 'N/A'}`
+                        },
+                        timestamp: new Date().toISOString()
+                    }]
                 };
                 
                 // Add a mention for the applicant if we have their Discord ID
                 if (discordId) {
-                    message.content += `\n\n${applicantMention}, your application has been ${statusText.toLowerCase()}.`;
+                    // Add the mention at the beginning of the message content
+                    message.content = `${applicantMention}, your application has been ${statusText.toLowerCase()} by ${adminMention}.\n\n${message.content}`;
+                } else {
+                    // Still include who processed it in the message content
+                    message.content = `Application processed by ${adminMention}.\n\n${message.content}`;
                 }
             }
 
@@ -441,8 +474,11 @@
 
         // Check authentication and admin status
         document.addEventListener('DOMContentLoaded', () => {
-            const user = JSON.parse(localStorage.getItem('user') || 'null');
+            // User is already authenticated at this point due to session check
             const userGreeting = document.getElementById('userGreeting');
+            if (userGreeting) {
+                userGreeting.textContent = 'Welcome, Admin';
+            }
             const userDiscordInfo = document.getElementById('userDiscordInfo');
             const logoutBtn = document.getElementById('logoutBtn');
 

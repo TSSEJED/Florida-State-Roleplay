@@ -4,135 +4,277 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Login - FSRP Training</title>
-    <link rel="stylesheet" href="styles.css">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
     <style>
+        :root {
+            --primary: #4a6fa5;
+            --primary-dark: #3a5a80;
+            --secondary: #6c757d;
+            --success: #28a745;
+            --danger: #dc3545;
+            --light: #f8f9fa;
+            --dark: #343a40;
+            --border: #dee2e6;
+            --white: #ffffff;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: #f5f7fa;
+            color: #333;
+            line-height: 1.6;
+        }
+
         .login-container {
-            max-width: 400px;
-            margin: 5rem auto;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
             padding: 2rem;
-            background: white;
-            border-radius: 10px;
-            box-shadow: 0 0 20px rgba(0, 0, 0, 0.1);
+        }
+
+        .login-box {
+            background: var(--white);
+            border-radius: 8px;
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
+            width: 100%;
+            max-width: 400px;
+            overflow: hidden;
+        }
+
+        .login-header {
+            background: var(--primary);
+            color: white;
+            padding: 2rem;
             text-align: center;
         }
-        
-        .login-logo {
-            width: 120px;
-            margin-bottom: 1.5rem;
+
+        .login-header h1 {
+            font-size: 1.8rem;
+            margin-bottom: 0.5rem;
         }
-        
-        .login-title {
-            margin-bottom: 2rem;
-            color: #2c3e50;
+
+        .login-header p {
+            opacity: 0.9;
+            font-size: 0.9rem;
         }
-        
+
+        .login-body {
+            padding: 2rem;
+        }
+
         .btn-discord {
-            display: inline-flex;
+            display: flex;
             align-items: center;
             justify-content: center;
             gap: 10px;
+            width: 100%;
+            padding: 0.8rem;
             background: #5865F2;
             color: white;
-            padding: 12px 24px;
-            border-radius: 4px;
-            text-decoration: none;
-            font-weight: 500;
-            transition: background 0.2s;
             border: none;
+            border-radius: 4px;
+            font-size: 1rem;
+            font-weight: 600;
             cursor: pointer;
-            width: 100%;
-            font-size: 16px;
+            transition: background 0.2s;
+            text-decoration: none;
+            margin-bottom: 1rem;
         }
-        
+
         .btn-discord:hover {
             background: #4752c4;
         }
-        
-        .login-footer {
-            margin-top: 2rem;
-            color: #7f8c8d;
+
+        .divider {
+            display: flex;
+            align-items: center;
+            text-align: center;
+            margin: 1.5rem 0;
+            color: var(--secondary);
             font-size: 0.9rem;
+        }
+
+        .divider::before,
+        .divider::after {
+            content: '';
+            flex: 1;
+            border-bottom: 1px solid var(--border);
+        }
+
+        .divider:not(:empty)::before {
+            margin-right: 1rem;
+        }
+
+        .divider:not(:empty)::after {
+            margin-left: 1rem;
+        }
+
+        .admin-login {
+            text-align: center;
+            margin-top: 1.5rem;
+            padding-top: 1.5rem;
+            border-top: 1px solid var(--border);
+        }
+
+        .admin-login p {
+            margin-bottom: 1rem;
+            color: var(--secondary);
+            font-size: 0.9rem;
+        }
+
+        .btn-admin {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            padding: 0.6rem 1.2rem;
+            background: var(--secondary);
+            color: white;
+            border: none;
+            border-radius: 4px;
+            font-size: 0.9rem;
+            font-weight: 500;
+            cursor: pointer;
+            transition: background 0.2s;
+            text-decoration: none;
+        }
+
+        .btn-admin:hover {
+            background: #5a6268;
+        }
+
+        .error-message {
+            color: var(--danger);
+            background: #f8d7da;
+            border: 1px solid #f5c6cb;
+            padding: 0.75rem;
+            border-radius: 4px;
+            margin-bottom: 1.5rem;
+            font-size: 0.9rem;
+            display: none;
+        }
+
+        @media (max-width: 480px) {
+            .login-container {
+                padding: 1rem;
+            }
+            
+            .login-header {
+                padding: 1.5rem 1rem;
+            }
+            
+            .login-body {
+                padding: 1.5rem 1rem;
+            }
         }
     </style>
 </head>
 <body>
     <div class="login-container">
-        <h1 class="login-title">FSRP Training Portal</h1>
-        <p>Please sign in with your Discord account to continue</p>
-        
-        <button id="discordLogin" class="btn-discord" onclick="window.location.href='https://discord.com/api/oauth2/authorize?client_id=1381993589663338637&redirect_uri=' + encodeURIComponent(window.location.origin + '/auth/discord/callback') + '&response_type=code&scope=identify%20email%20guilds'">
-            <i class="fab fa-discord"></i> Continue with Discord
-        </button>
-        
-        <div class="login-footer">
-            <p>By signing in, you agree to our terms of service.</p>
+        <div class="login-box">
+            <div class="login-header">
+                <h1>Welcome Back</h1>
+                <p>Sign in to access the FSRP Training System</p>
+            </div>
+            <div class="login-body">
+                <div id="errorMessage" class="error-message"></div>
+                
+                <a href="#" id="discordLogin" class="btn-discord">
+                    <i class="fab fa-discord"></i>
+                    Sign in with Discord
+                </a>
+                
+                <div class="divider">OR</div>
+                
+                <div class="admin-login">
+                    <p>Are you an administrator?</p>
+                    <a href="loginadmin.html" class="btn-admin">
+                        <i class="fas fa-lock"></i>
+                        Admin Login
+                    </a>
+                </div>
+            </div>
         </div>
     </div>
 
     <script>
-        // Inline config since the file isn't found
-        window.appConfig = {
-            DISCORD_CLIENT_ID: '1381993589663338637',
-            DISCORD_REDIRECT_URI: 'https://florida-state-roleplay.pages.dev/auth/discord/callback'
-        };
-    </script>
-    <script src="js/session.js"></script>
-    <script>
-        // Check if already logged in when DOM is loaded
         document.addEventListener('DOMContentLoaded', () => {
-            // Only redirect if we're not already on the login page
-            if (window.sessionManager.isLoggedIn() && !window.location.pathname.endsWith('login.html')) {
-                const redirectTo = sessionStorage.getItem('redirectAfterLogin') || 'index.html';
-                // Remove the redirect to prevent loops
-                sessionStorage.removeItem('redirectAfterLogin');
-                window.location.href = `/training-request/${redirectTo}`;
-            }
-        });
-    </script>
-    <script>
-        // Discord OAuth2 Configuration from config
-        const DISCORD_CLIENT_ID = window.appConfig.DISCORD_CLIENT_ID;
-        const DISCORD_REDIRECT_URI = encodeURIComponent(window.appConfig.DISCORD_REDIRECT_URI || window.location.origin + '/auth/discord/callback');
-        const DISCORD_SCOPE = 'identify email guilds';
-        
-        // Check if we have a valid config
-        if (!DISCORD_CLIENT_ID) {
-            console.error('Error: Discord Client ID is not configured');
-            document.body.innerHTML = `
-                <div style="text-align: center; padding: 2rem; color: #721c24; background: #f8d7da; border: 1px solid #f5c6cb; border-radius: 4px; margin: 2rem;">
-                    <h2>Configuration Error</h2>
-                    <p>Discord Client ID is not configured. Please check your config.js file.</p>
-                </div>
-            `;
-        }
-        
-        // Check if user is already logged in
-        document.addEventListener('DOMContentLoaded', () => {
-            const user = JSON.parse(localStorage.getItem('user') || 'null');
-            const isAdmin = user && user.isAdmin;
-            
-            if (user) {
-                // Redirect based on admin status
-                const redirectPath = isAdmin ? 'admin.html' : 'index.html';
-                window.location.href = redirectPath;
-            }
-            
-            // Set up Discord login
-            document.getElementById('discordLogin').addEventListener('click', () => {
-                const clientId = '1381993589663338637'; // Your Discord Client ID
-                // Make sure this matches EXACTLY what's in Discord Developer Portal
-                const redirectUri = encodeURIComponent('https://florida-state-roleplay.pages.dev/auth/discord/callback');
-                const scope = 'identify email guilds';
+            // Check if user is already logged in
+            const token = localStorage.getItem('token');
+            if (token) {
+                // Redirect to appropriate page based on user role
+                const user = JSON.parse(localStorage.getItem('user') || '{}');
+                const isAdmin = user.roles && user.roles.some(role => ['Admin', 'Staff Manager'].includes(role));
                 
-                // Store the current URL so we can redirect back after login
-                const redirectAfterLogin = window.location.pathname.includes('admin') ? 'admin.html' : 'index.html';
-                sessionStorage.setItem('redirectAfterLogin', redirectAfterLogin);
+                const urlParams = new URLSearchParams(window.location.search);
+                const redirectTo = urlParams.get('redirect') || (isAdmin ? 'admin.html' : 'index.html');
                 
-                const authUrl = `https://discord.com/api/oauth2/authorize?client_id=${clientId}&redirect_uri=${redirectUri}&response_type=code&scope=${encodeURIComponent(scope)}`;
-                window.location.href = authUrl;
+                // Don't allow regular users to access admin pages
+                if (redirectTo.includes('admin') && !isAdmin) {
+                    window.location.href = 'index.html';
+                    return;
+                }
+                
+                window.location.href = redirectTo;
+                return;
+            }
+
+            // Handle Discord login
+            const discordLogin = document.getElementById('discordLogin');
+            discordLogin.addEventListener('click', (e) => {
+                e.preventDefault();
+                initiateDiscordLogin();
             });
+
+            // Check for error messages in URL
+            const urlParams = new URLSearchParams(window.location.search);
+            const error = urlParams.get('error');
+            if (error) {
+                showError(decodeURIComponent(error));
+            }
         });
+
+        function initiateDiscordLogin() {
+            // Store the redirect URL if provided
+            const urlParams = new URLSearchParams(window.location.search);
+            const redirectTo = urlParams.get('redirect');
+            
+            if (redirectTo) {
+                localStorage.setItem('redirectAfterLogin', redirectTo);
+            }
+
+            // Generate random state for CSRF protection
+            const state = Math.random().toString(36).substring(2);
+            localStorage.setItem('oauth_state', state);
+
+            // Build the Discord OAuth2 URL with implicit grant flow
+            const clientId = '1381993589663338637'; // FSRP Bot Client ID
+            const redirectUri = encodeURIComponent('https://florida-state-roleplay.pages.dev/training-request/auth/discord/callback');
+            const scopes = encodeURIComponent('identify email guilds');
+            
+            // Using response_type=token for implicit grant flow (no backend needed)
+            const authUrl = `https://discord.com/api/oauth2/authorize?client_id=${clientId}&redirect_uri=${redirectUri}&response_type=token&scope=${scopes}&state=${state}&prompt=none`;
+            
+            // Redirect to Discord OAuth
+            window.location.href = authUrl;
+        }
+
+        function showError(message) {
+            const errorEl = document.getElementById('errorMessage');
+            errorEl.textContent = message;
+            errorEl.style.display = 'block';
+            
+            // Auto-hide error after 5 seconds
+            setTimeout(() => {
+                errorEl.style.display = 'none';
+            }, 5000);
+        }
     </script>
 </body>
 </html>
