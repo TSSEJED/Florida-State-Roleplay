@@ -381,6 +381,8 @@
         <span id="notificationMessage">Notification message</span>
     </div>
 
+    <!-- Load scripts at the end of the body -->
+    <script src="https://kit.fontawesome.com/your-fontawesome-kit.js" crossorigin="anonymous"></script>
     <script>
         // Discord Webhook URLs
         const DISCORD_WEBHOOKS = {
@@ -964,28 +966,49 @@
         // Debug function to check if elements exist
         function checkElements() {
             console.log('Checking elements...');
-            console.log('applicationsList:', document.getElementById('applicationsList'));
-            console.log('username:', document.getElementById('username'));
+            const appsList = document.getElementById('applicationsList');
+            const userEl = document.getElementById('username');
+            console.log('applicationsList:', appsList);
+            console.log('username:', userEl);
+            return { appsList, userEl };
         }
 
-        // Initialize the admin dashboard
-        document.addEventListener('DOMContentLoaded', () => {
-            console.log('DOM fully loaded');
-            checkElements();
+        // Wait for everything to be fully loaded
+        function initializeDashboard() {
+            console.log('Initializing dashboard...');
+            const { appsList, userEl } = checkElements();
             
             // Update username in the greeting if element exists
-            const usernameElement = document.getElementById('username');
-            if (usernameElement) {
+            if (userEl) {
                 try {
                     const userData = JSON.parse(sessionStorage.getItem('userData') || '{}');
                     const username = userData.username || 'Admin';
-                    usernameElement.textContent = username;
+                    userEl.textContent = username;
                 } catch (e) {
                     console.error('Error parsing user data:', e);
                 }
             }
-
-            // Add logout functionality if button exists
+            
+            // Initialize applications list if element exists
+            if (appsList) {
+                renderApplications();
+            } else {
+                console.error('Applications list container not found in DOM');
+                // Try to find it again after a short delay
+                setTimeout(() => {
+                    const retryAppsList = document.getElementById('applicationsList');
+                    if (retryAppsList) {
+                        console.log('Found applications list after retry');
+                        renderApplications();
+                    }
+                }, 500);
+            }
+            
+            console.log('Dashboard initialization complete');
+        }
+        
+        // Add logout functionality
+        function setupLogoutButton() {
             const logoutBtn = document.getElementById('logoutBtn');
             if (logoutBtn) {
                 logoutBtn.addEventListener('click', () => {
@@ -996,25 +1019,27 @@
                     window.location.href = 'login.html';
                 });
             }
+        }
 
-            // Render applications on page load
-            if (typeof renderApplications === 'function') {
-                renderApplications();
-            }
+        // Initialize everything when the window loads
+        window.onload = function() {
+            console.log('Window fully loaded');
+            initializeDashboard();
+            setupLogoutButton();
             
-            // Add event listeners for filters if they exist
+            // Set up event listeners for filters and close modal button
             const statusFilter = document.getElementById('statusFilter');
+            const searchInput = document.getElementById('searchInput');
+            const closeModalBtn = document.querySelector('.close-modal');
+            
             if (statusFilter) {
                 statusFilter.addEventListener('change', renderApplications);
             }
             
-            const searchInput = document.getElementById('searchInput');
             if (searchInput) {
                 searchInput.addEventListener('input', renderApplications);
             }
             
-            // Close modal button if it exists
-            const closeModalBtn = document.querySelector('.close-modal');
             if (closeModalBtn) {
                 closeModalBtn.addEventListener('click', closeModal);
             }
