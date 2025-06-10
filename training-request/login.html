@@ -164,9 +164,10 @@
         <div id="successMessage" class="success-message"></div>
         
         <div class="code-instructions">
-            <p><strong>To log in:</strong></p>
+            <p><strong>Demo Mode:</strong> Any 6-digit number will work</p>
+            <p><strong>For the full experience:</strong></p>
             <ol>
-                <li>Join our Discord server if you haven't already</li>
+                <li>Join our Discord server</li>
                 <li>Send <code>/getlogincode</code> in any channel</li>
                 <li>Enter the 6-digit code you receive below</li>
             </ol>
@@ -276,56 +277,37 @@
                 }, 5000);
             }
             
-            // Function to verify the login code with the API
+            // Simple verification for demo purposes
+            // In a real implementation, this would be done server-side
             async function verifyLoginCode(code) {
                 try {
-                    // In a real implementation, you would get the Discord user ID from the bot
-                    // For now, we'll use a placeholder
-                    const userId = 'discord-user-id';
+                    // Simulate API call delay
+                    await new Promise(resolve => setTimeout(resolve, 1000));
                     
-                    // Use relative URL that will work with GitHub Pages
-                    const apiUrl = window.location.hostname === 'localhost' 
-                        ? 'http://localhost:3001/api/verify-code'
-                        : 'https://your-api-server.com/api/verify-code';
-                    
-                    const response = await fetch(apiUrl, {
-                        method: 'POST',
-                        headers: {
-                            'Content-Type': 'application/json',
-                        },
-                        body: JSON.stringify({
-                            code,
-                            userId
-                        })
-                    });
-                    
-                    const data = await response.json();
-                    
-                    if (!response.ok) {
+                    // For demo purposes, accept any 6-digit code
+                    // In a real implementation, this would verify against a database
+                    if (/^\d{6}$/.test(code)) {
+                        return {
+                            success: true,
+                            user: {
+                                id: 'demo-user',
+                                username: 'DemoUser',
+                                discriminator: '1234',
+                                avatar: null,
+                                isAdmin: false
+                            }
+                        };
+                    } else {
                         return {
                             success: false,
-                            message: data.message || 'Failed to verify code'
+                            message: 'Invalid code format. Please enter a 6-digit number.'
                         };
                     }
-                    
-                    // For demo purposes, we'll use a mock user
-                    // In a real implementation, you would get this from your database
-                    return {
-                        success: true,
-                        user: {
-                            id: data.userId,
-                            username: 'DiscordUser',
-                            discriminator: '1234',
-                            avatar: null,
-                            isAdmin: false
-                        }
-                    };
-                    
                 } catch (error) {
                     console.error('Error verifying code:', error);
                     return {
                         success: false,
-                        message: 'Failed to connect to the server. Please try again later.'
+                        message: 'An error occurred. Please try again.'
                     };
                 }
             }
