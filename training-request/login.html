@@ -178,10 +178,9 @@
 <body>
     <div class="login-container">
         <div class="login-box">
-            <div class="login-header">
-                <h1>Welcome Back</h1>
-                <p>Sign in to access the FSRP Training System</p>
-            </div>
+            <h1>FSRP Training</h1>
+            <p>Please sign in with Discord to access the training system.</p>
+            <div id="error-message" class="error-message" style="display: none; color: #ff4444; margin: 10px 0; padding: 10px; background: #ffebee; border-radius: 4px;"></div>
             <div class="login-body">
                 <div id="errorMessage" class="error-message"></div>
                 
@@ -204,7 +203,43 @@
     </div>
 
     <script>
+        // Function to show error message
+        function showError(message) {
+            const errorEl = document.getElementById('error-message');
+            if (errorEl) {
+                errorEl.textContent = message;
+                errorEl.style.display = 'block';
+            }
+            console.error('Login Error:', message);
+        }
+
         document.addEventListener('DOMContentLoaded', () => {
+            // Check for any stored error messages
+            const loginError = sessionStorage.getItem('loginError');
+            if (loginError) {
+                showError(loginError);
+                sessionStorage.removeItem('loginError');
+            }
+
+            // Check if user is already logged in via session storage
+            const isAuthenticated = sessionStorage.getItem('userAuthenticated');
+            const userData = sessionStorage.getItem('userData');
+            
+            if (isAuthenticated && userData) {
+                try {
+                    const user = JSON.parse(userData);
+                    console.log('User already authenticated:', user.username);
+                    // Redirect to index if already authenticated
+                    window.location.href = 'index.html';
+                    return;
+                } catch (e) {
+                    console.error('Error parsing user data:', e);
+                    // Clear invalid data
+                    sessionStorage.removeItem('userAuthenticated');
+                    sessionStorage.removeItem('userData');
+                }
+            }
+
             // Check if user is already logged in
             const token = localStorage.getItem('token');
             if (token) {

@@ -56,7 +56,28 @@
     </div>
 
     <script>
+        // Function to display error to user
+        function showError(message) {
+            console.error('Authentication Error:', message);
+            const errorEl = document.getElementById('error');
+            if (errorEl) {
+                errorEl.textContent = message;
+                errorEl.style.display = 'block';
+            }
+            
+            // Store error in session storage to show on login page
+            sessionStorage.setItem('loginError', message);
+            
+            // Redirect to login page after showing error
+            setTimeout(() => {
+                window.location.href = '../login.html';
+            }, 5000);
+        }
+
         document.addEventListener('DOMContentLoaded', async () => {
+            console.log('Callback page loaded');
+            console.log('URL hash:', window.location.hash);
+            console.log('URL search:', window.location.search);
             // Get the token from the URL hash
             const hash = window.location.hash.substring(1);
             const params = new URLSearchParams(hash);
@@ -69,7 +90,13 @@
             const errorDesc = params.get('error_description');
             
             // Get and validate redirect path
-            let redirectPath = localStorage.getItem('redirectAfterLogin') || '/index';
+            let redirectPath = localStorage.getItem('redirectAfterLogin');
+            console.log('Initial redirectPath from localStorage:', redirectPath);
+            
+            if (!redirectPath || !['/index', '/admin'].includes(redirectPath)) {
+                console.log('Using default redirect path /index');
+                redirectPath = '/index';
+            }
             const isAdminFlow = localStorage.getItem('isAdminFlow') === 'true';
             const baseUrl = window.location.origin + '/training-request';
             
@@ -82,14 +109,20 @@
 
             // Handle OAuth errors
             if (error) {
-                showError(`Error: ${errorDesc || 'Authentication failed'}`);
+                const errorMsg = `Discord OAuth Error: ${error} - ${errorDesc || 'No description'}`;
+                console.error(errorMsg);
+                showError(errorMsg);
                 return;
             }
 
             if (!accessToken) {
-                showError('No access token received from Discord');
+                const errorMsg = 'No access token received from Discord. Make sure you authorized the application.';
+                console.error(errorMsg);
+                showError(errorMsg);
                 return;
             }
+            
+            console.log('Access token received, type:', tokenType);
             
             try {
                 // Store the access token
@@ -154,21 +187,32 @@
                     }
                 }
                 
-                // Clear the redirect from localStorage
-                localStorage.removeItem('redirectAfterLogin');
-                
-                // Determine final redirect URL
-                let finalUrl;
-                if (isAdmin && (redirectPath === '/admin' || isAdminFlow)) {
-                    console.log('Admin user, redirecting to admin dashboard');
-                    finalUrl = `${baseUrl}/admin`;
-                } else {
-                    console.log('Regular user, redirecting to:', redirectPath);
-                    finalUrl = `${baseUrl}${redirectPath}`.replace(/([^:]\/)\/+$/, '$1');
+                try {
+                    // Clear the redirect from localStorage
+                    localStorage.removeItem('redirectAfterLogin');
+                    
+                    // Determine final redirect URL
+                    let finalUrl;
+                    if (isAdmin && (redirectPath === '/admin' || isAdminFlow)) {
+                        console.log('Admin user, redirecting to admin dashboard');
+                        finalUrl = `${baseUrl}/admin`;
+                    } else {
+                        console.log('Regular user, redirecting to:', redirectPath);
+                        finalUrl = `${baseUrl}${redirectPath}`.replace(/([^:]\/)\/+$/, '$1');
+                    }
+                    
+                    console.log('Final redirect URL:', finalUrl);
+                    
+                    // Store user data in session storage
+                    sessionStorage.setItem('userAuthenticated', 'true');
+                    sessionStorage.setItem('userData', JSON.stringify(userData));
+                    
+                    // Redirect to final URL
+                    window.location.href = finalUrl;
+                } catch (redirectError) {
+                    console.error('Error during redirect:', redirectError);
+                    showError(`Error during redirect: ${redirectError.message}`);
                 }
-                
-                console.log('Final redirect URL:', finalUrl);
-                window.location.href = finalUrl;
 
             } catch (err) {
                 console.error('Authentication error:', err);

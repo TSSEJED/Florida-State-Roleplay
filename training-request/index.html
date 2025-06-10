@@ -3,6 +3,36 @@
 <head>
     <!-- Include session manager -->
     <script src="js/session.js"></script>
+    <script>
+        // Check if user is authenticated
+        document.addEventListener('DOMContentLoaded', () => {
+            const isAuthenticated = sessionStorage.getItem('userAuthenticated');
+            const userData = sessionStorage.getItem('userData');
+            
+            if (!isAuthenticated || !userData) {
+                // Redirect to login with redirect back to index
+                sessionStorage.setItem('loginError', 'Please log in to access this page');
+                window.location.href = 'login.html?redirect=' + encodeURIComponent(window.location.pathname);
+                return;
+            }
+            
+            try {
+                const user = JSON.parse(userData);
+                console.log('User authenticated:', user.username);
+                
+                // Update UI with user info if needed
+                const userInfoElement = document.getElementById('user-info');
+                if (userInfoElement) {
+                    userInfoElement.textContent = `Welcome, ${user.username}`;
+                }
+            } catch (e) {
+                console.error('Error parsing user data:', e);
+                sessionStorage.removeItem('userAuthenticated');
+                sessionStorage.removeItem('userData');
+                window.location.href = 'login.html';
+            }
+        });
+    </script>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Training Application - FSRP</title>
