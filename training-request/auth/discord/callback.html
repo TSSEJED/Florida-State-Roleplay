@@ -191,30 +191,27 @@
                     // Store user data in session storage
                     sessionStorage.setItem('userData', JSON.stringify(userData));
                     
-                    // Hardcode the redirect URLs to ensure they work
+                    // Log all storage for debugging
+                    console.log('Session Storage:', JSON.stringify(sessionStorage, null, 2));
+                    console.log('Local Storage:', JSON.stringify(localStorage, null, 2));
+                    
+                    // Force redirect to index for testing
                     const baseUrl = 'https://florida-state-roleplay.pages.dev';
-                    let redirectPath = '/training-request/index.html';
+                    const redirectUrl = `${baseUrl}/training-request/index.html`;
                     
-                    // Check if we were trying to access admin
-                    const wasAdminFlow = sessionStorage.getItem('isAdminFlow') === 'true' || 
-                                       localStorage.getItem('isAdminFlow') === 'true';
+                    console.log('Forcing redirect to:', redirectUrl);
                     
-                    if (wasAdminFlow) {
-                        redirectPath = '/training-request/admin.html';
-                    }
+                    // Clear any stored values that might interfere
+                    sessionStorage.clear();
+                    localStorage.clear();
                     
-                    // Clear stored values
-                    sessionStorage.removeItem('isAdminFlow');
-                    localStorage.removeItem('isAdminFlow');
-                    sessionStorage.removeItem('redirectAfterLogin');
-                    localStorage.removeItem('redirectAfterLogin');
+                    // Store a test value to verify storage is working
+                    sessionStorage.setItem('test', 'test-value');
                     
-                    // Construct the full URL
-                    const redirectUrl = `${baseUrl}${redirectPath}`;
-                    console.log('Final redirect URL:', redirectUrl);
-                    
-                    console.log('Final redirect URL:', redirectUrl);
-                    window.location.href = redirectUrl;
+                    // Force redirect after a short delay to allow logs to be seen
+                    setTimeout(() => {
+                        window.location.href = redirectUrl;
+                    }, 1000);
                 } catch (redirectError) {
                     console.error('Error during redirect:', redirectError);
                     showError(`Error during redirect: ${redirectError.message}`);

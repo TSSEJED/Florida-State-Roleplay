@@ -139,17 +139,21 @@
             // Set up Discord login button
             if (loginBtn) {
                 loginBtn.addEventListener('click', () => {
-                    // Set admin flow flag if coming from admin page
-                    const isAdminFlow = window.location.href.includes('admin.html');
+                    // Clear any existing storage
+                    sessionStorage.clear();
+                    localStorage.clear();
                     
-                    // Store the admin flow flag in both session and local storage for reliability
-                    sessionStorage.setItem('isAdminFlow', isAdminFlow);
-                    localStorage.setItem('isAdminFlow', isAdminFlow);
+                    // Set a test value to verify storage is working
+                    sessionStorage.setItem('test', 'test-value');
                     
-                    console.log('Login initiated, isAdminFlow:', isAdminFlow);
+                    // Log the current URL and storage state
+                    console.log('Current URL:', window.location.href);
+                    console.log('Session Storage:', JSON.stringify(sessionStorage, null, 2));
                     
-                    // Redirect to Discord OAuth2
+                    // Build the Discord OAuth2 URL
                     const authUrl = `https://discord.com/api/oauth2/authorize?client_id=${DISCORD_CLIENT_ID}&redirect_uri=${encodeURIComponent(DISCORD_REDIRECT_URI)}&response_type=token&scope=${encodeURIComponent(DISCORD_SCOPE)}`;
+                    
+                    console.log('Redirecting to Discord OAuth2:', authUrl);
                     window.location.href = authUrl;
                 });
             }
