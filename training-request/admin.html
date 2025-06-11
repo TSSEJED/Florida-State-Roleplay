@@ -207,6 +207,119 @@
             cursor: not-allowed;
         }
         
+        /* Admin Actions */
+        .admin-actions {
+            margin: 20px 0;
+            padding: 15px;
+            background-color: #f8f9fa;
+            border-radius: 8px;
+            border: 1px solid #e9ecef;
+        }
+        
+        .admin-actions h3 {
+            margin-top: 0;
+            color: #2c3e50;
+            font-size: 1.2rem;
+            border-bottom: 1px solid #dee2e6;
+            padding-bottom: 10px;
+            margin-bottom: 15px;
+        }
+        
+        .form-group {
+            margin-bottom: 15px;
+        }
+        
+        .form-group label {
+            display: block;
+            margin-bottom: 5px;
+            font-weight: 500;
+            color: #495057;
+        }
+        
+        .form-control {
+            width: 100%;
+            padding: 8px 12px;
+            border: 1px solid #ced4da;
+            border-radius: 4px;
+            font-size: 0.9rem;
+        }
+        
+        textarea.form-control {
+            min-height: 60px;
+            resize: vertical;
+        }
+        
+        .action-buttons {
+            display: flex;
+            gap: 10px;
+            flex-wrap: wrap;
+            margin-top: 15px;
+        }
+        
+        /* Action History */
+        .action-history {
+            margin-top: 25px;
+            padding-top: 15px;
+            border-top: 1px solid #e9ecef;
+        }
+        
+        .action-history h4 {
+            color: #2c3e50;
+            margin-bottom: 10px;
+        }
+        
+        .history-list {
+            list-style: none;
+            padding: 0;
+            margin: 0;
+        }
+        
+        .history-item {
+            padding: 10px 15px;
+            margin-bottom: 8px;
+            background-color: #f8f9fa;
+            border-radius: 6px;
+            border-left: 4px solid #6c757d;
+        }
+        
+        .history-item.approved {
+            border-left-color: #28a745;
+        }
+        
+        .history-item.denied {
+            border-left-color: #dc3545;
+        }
+        
+        .history-item.pending {
+            border-left-color: #ffc107;
+        }
+        
+        .history-action {
+            font-weight: 600;
+            margin-right: 10px;
+            text-transform: capitalize;
+        }
+        
+        .history-by {
+            color: #6c757d;
+            margin-right: 10px;
+        }
+        
+        .history-time {
+            color: #6c757d;
+            font-size: 0.85em;
+        }
+        
+        .history-note {
+            margin-top: 5px;
+            padding: 5px 10px;
+            background-color: #ffffff;
+            border-radius: 4px;
+            font-size: 0.9em;
+            color: #495057;
+            border-left: 3px solid #6c757d;
+        }
+        
         /* Collapsible Sections */
         .collapsible-section {
             margin-bottom: 1rem;
@@ -481,8 +594,25 @@
                 hour12: true 
             });
             
-            const statusEmoji = webhookType === 'APPROVED' ? '✅' : '❌';
-            const statusText = webhookType === 'APPROVED' ? 'Approved' : 'Denied';
+            let statusEmoji, statusText;
+            
+            switch(webhookType) {
+                case 'APPROVED':
+                    statusEmoji = '✅';
+                    statusText = 'Approved';
+                    break;
+                case 'DENIED':
+                    statusEmoji = '❌';
+                    statusText = 'Denied';
+                    break;
+                case 'RESET':
+                    statusEmoji = '🔄';
+                    statusText = 'Reset to Pending';
+                    break;
+                default:
+                    statusEmoji = 'ℹ️';
+                    statusText = 'Updated';
+            }
             
             // Get admin info from the application or use current user
             const currentUser = JSON.parse(localStorage.getItem('user') || '{}');
@@ -503,6 +633,12 @@
                 const applicantName = application.applicantName || 'Unknown Applicant';
                 const discordInfo = application.discordUsername || 'N/A';
                 
+                // Determine color based on action type
+                let color = 0x3498db; // Default blue
+                if (webhookType === 'APPROVED') color = 0x2ecc71;      // Green for approved
+                else if (webhookType === 'DENIED') color = 0xe74c3c;   // Red for denied
+                else if (webhookType === 'RESET') color = 0xf39c12;    // Orange for reset
+
                 message = {
                     content: `${statusEmoji} **Application ${statusText}**`,
                     embeds: [{
@@ -510,21 +646,26 @@
                         description: `\n👤 **Applicant:** ${applicantName}` +
                                    `\n💬 **Discord:** ${discordInfo}` +
                                    `\n📅 **Date:** ${timestamp}`,
-                        color: webhookType === 'APPROVED' ? 0x2ecc71 : 0xe74c3c, // Green for approved, red for denied
+                        color: color,
                         fields: [
                             {
-                                name: 'Processed By',
-                                value: adminMention,
+                                name: 'Action Performed By',
+                                value: adminMention || adminName,
                                 inline: true
                             },
                             {
                                 name: 'Status',
                                 value: statusText,
                                 inline: true
+                            },
+                            {
+                                name: 'Admin Note',
+                                value: application.processedBy?.note || 'No additional notes provided',
+                                inline: false
                             }
                         ],
                         footer: {
-                            text: `Application ID: ${application.id || 'N/A'}`
+                            text: `Application ID: ${application.id || 'N/A'} • Action by: ${adminName} • ${timestamp}`
                         },
                         timestamp: new Date().toISOString()
                     }]
@@ -908,6 +1049,52 @@
                         </button>
                     `}
                 </div>
+                <div class="admin-actions">
+                    <h3>Admin Actions</h3>
+                    <div class="form-group">
+                        <label for="moderator-name-${application.id}">Your Name:</label>
+                        <input type="text" id="moderator-name-${application.id}" 
+                               class="form-control" 
+                               placeholder="Enter your name" 
+                               value="${application.processedBy && application.processedBy.adminName || ''}" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="admin-note-${application.id}">Note (Optional):</label>
+                        <textarea id="admin-note-${application.id}" 
+                                 class="form-control" 
+                                 placeholder="Add a note about this action"
+                                 rows="2">${application.processedBy && application.processedBy.note || ''}</textarea>
+                    </div>
+                    <div class="action-buttons">
+                        <button onclick="updateApplicationStatus('${application.id}', 'approved')" class="btn btn-success">
+                            <i class="fas fa-check"></i> Approve
+                        </button>
+                        <button onclick="updateApplicationStatus('${application.id}', 'denied')" class="btn btn-danger">
+                            <i class="fas fa-times"></i> Deny
+                        </button>
+                        <button onclick="resetApplicationStatus('${application.id}')" class="btn btn-warning">
+                            <i class="fas fa-undo"></i> Reset to Pending
+                        </button>
+                        <button onclick="closeModal()" class="btn btn-secondary">
+                            <i class="fas fa-times"></i> Close
+                        </button>
+                    </div>
+                </div>
+                ${application.actionHistory && application.actionHistory.length > 0 ? `
+                    <div class="action-history">
+                        <h4>Action History</h4>
+                        <ul class="history-list">
+                            ${application.actionHistory.map(entry => `
+                                <li class="history-item">
+                                    <span class="history-action ${entry.action}">${entry.action.toUpperCase()}</span>
+                                    <span class="history-by">by ${entry.by}</span>
+                                    <span class="history-time">on ${new Date(entry.timestamp).toLocaleString()}</span>
+                                    ${entry.note ? `<div class="history-note">${entry.note}</div>` : ''}
+                                </li>
+                            `).join('')}
+                        </ul>
+                    </div>
+                ` : ''}
             `;
             
             document.getElementById('modalContent').innerHTML = modalContent;
@@ -956,23 +1143,40 @@
             const applications = JSON.parse(localStorage.getItem('trainingApplications') || '[]');
             const applicationIndex = applications.findIndex(app => app.id === applicationId);
             
-            // Get moderator name from input
+            // Get moderator name and note from input
             const moderatorNameInput = document.getElementById(`moderator-name-${applicationId}`);
+            const noteInput = document.getElementById(`admin-note-${applicationId}`);
             const moderatorName = moderatorNameInput ? moderatorNameInput.value.trim() : 'Unknown Moderator';
+            const note = noteInput ? noteInput.value.trim() : '';
             
             if (applicationIndex !== -1) {
                 const application = applications[applicationIndex];
                 application.status = status;
                 application.updatedAt = new Date().toISOString();
                 
-                // Store who processed this application
+                // Store who processed this application with note
                 application.processedBy = {
                     id: 'local-admin',
                     username: moderatorName,
                     discriminator: '0000',
                     timestamp: new Date().toISOString(),
-                    adminName: moderatorName
+                    adminName: moderatorName,
+                    note: note,
+                    action: status
                 };
+                
+                // Initialize action history if it doesn't exist
+                if (!application.actionHistory) {
+                    application.actionHistory = [];
+                }
+                
+                // Add this action to history
+                application.actionHistory.push({
+                    action: status,
+                    by: moderatorName,
+                    timestamp: new Date().toISOString(),
+                    note: note
+                });
                 
                 localStorage.setItem('trainingApplications', JSON.stringify(applications));
                 
@@ -980,25 +1184,62 @@
                 renderApplications();
                 
                 // Show success notification
-                showNotification(`Application has been ${status} by ${moderatorName}.`, status === 'approved' ? 'success' : 'error');
+                showNotification(
+                    `Application has been ${status} by ${moderatorName}` + 
+                    (note ? ` with note: ${note}` : ''), 
+                    status === 'approved' ? 'success' : 'error'
+                );
                 
                 // Send Discord notification
                 try {
                     const webhookType = status.toUpperCase();
-                    if (webhookType === 'APPROVED' || webhookType === 'DENIED') {
-                        await sendDiscordNotification(webhookType, application);
-                    }
+                    await sendDiscordNotification(webhookType, application);
                 } catch (error) {
                     console.error('Error sending Discord notification:', error);
-                    // Don't show error to user, just log it
+                    showNotification('Action completed, but failed to send Discord notification.', 'error');
                 }
+                
+                // Close the modal if open
+                closeModal();
             }
         }
         
         // Reset application status to pending
-        function resetApplicationStatus(applicationId) {
+        async function resetApplicationStatus(applicationId) {
             if (confirm('Are you sure you want to reset this application to pending status?')) {
-                updateApplicationStatus(applicationId, 'pending');
+                const applications = JSON.parse(localStorage.getItem('trainingApplications') || '[]');
+                const applicationIndex = applications.findIndex(app => app.id === applicationId);
+                
+                if (applicationIndex !== -1) {
+                    const application = applications[applicationIndex];
+                    const moderatorName = prompt('Please enter your name for tracking:');
+                    
+                    if (moderatorName) {
+                        application.status = 'pending';
+                        application.updatedAt = new Date().toISOString();
+                        application.processedBy = {
+                            id: 'local-admin',
+                            username: moderatorName,
+                            discriminator: '0000',
+                            timestamp: new Date().toISOString(),
+                            action: 'reset to pending'
+                        };
+                        
+                        localStorage.setItem('trainingApplications', JSON.stringify(applications));
+                        renderApplications();
+                        
+                        // Send Discord notification for reset
+                        try {
+                            await sendDiscordNotification('RESET', application);
+                            showNotification('Application has been reset to pending status.', 'warning');
+                        } catch (error) {
+                            console.error('Error sending Discord notification:', error);
+                            showNotification('Application reset, but failed to send Discord notification.', 'error');
+                        }
+                    } else {
+                        alert('Action cancelled. Name is required for tracking.');
+                    }
+                }
             }
         }
         
