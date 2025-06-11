@@ -358,39 +358,7 @@
         </div>
     </div>
 
-    <script>
-        // Show notification function
-        function showNotification(message, type = 'success') {
-            const notification = document.getElementById('notification');
-            const icon = notification.querySelector('i');
-            const messageEl = notification.querySelector('.notification-message');
-            
-            // Set message and type
-            messageEl.textContent = message;
-            
-            // Update icon and styling based on type
-            notification.className = 'notification';
-            notification.classList.add(type);
-            
-            // Update icon
-            if (type === 'success') {
-                icon.className = 'fas fa-check-circle';
-            } else if (type === 'error') {
-                icon.className = 'fas fa-exclamation-circle';
-            } else if (type === 'warning') {
-                icon.className = 'fas fa-exclamation-triangle';
-            }
-            
-            // Show notification
-            notification.style.display = 'flex';
-            setTimeout(() => notification.classList.add('show'), 10);
-            
-            // Hide after delay
-            setTimeout(() => {
-                notification.classList.remove('show');
-                setTimeout(() => notification.style.display = 'none', 300);
-            }, 5000);
-        }
-    </script>
+    <!-- Include the form handler script -->
+    <script src="js/form-handler.js"></script>
 </body>
 </html>
