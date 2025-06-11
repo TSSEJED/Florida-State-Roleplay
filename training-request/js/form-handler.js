@@ -11,36 +11,27 @@ document.addEventListener('DOMContentLoaded', function() {
             submitBtn.disabled = true;
             submitBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Submitting...';
             
-            try {
-                // Get form data
-                const formData = new FormData(form);
-                const formValues = Object.fromEntries(formData.entries());
-                
-                // Send data to server
-                const response = await fetch('/api/submit-application', {
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json',
-                    },
-                    body: JSON.stringify(formValues)
-                });
-                
-                const result = await response.json();
-                
-                if (response.ok) {
-                    showNotification('Application submitted successfully!', 'success');
+            // Simulate API call with timeout
+            setTimeout(() => {
+                try {
+                    // Get form data (just for display, not actually sending)
+                    const formData = new FormData(form);
+                    const formValues = Object.fromEntries(formData.entries());
+                    
+                    console.log('Form data would be submitted:', formValues);
+                    
+                    // Show success message
+                    showNotification('Form submitted successfully! (Frontend only - no data was actually sent)', 'success');
                     form.reset();
-                } else {
-                    throw new Error(result.message || 'Failed to submit application');
+                } catch (error) {
+                    console.error('Error:', error);
+                    showNotification('An error occurred while processing the form', 'error');
+                } finally {
+                    // Reset button state
+                    submitBtn.disabled = false;
+                    submitBtn.innerHTML = originalBtnText;
                 }
-            } catch (error) {
-                console.error('Error:', error);
-                showNotification(error.message || 'An error occurred while submitting the form', 'error');
-            } finally {
-                // Reset button state
-                submitBtn.disabled = false;
-                submitBtn.innerHTML = originalBtnText;
-            }
+            }, 1000); // Simulate network delay
         });
     }
 });
