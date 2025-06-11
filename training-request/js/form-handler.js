@@ -1,6 +1,3 @@
-// Discord webhook URL - Replace with your actual webhook URL
-const DISCORD_WEBHOOK_URL = 'YOUR_DISCORD_WEBHOOK_URL';
-
 // Generate a unique ID for the application
 function generateId() {
     return Date.now().toString(36) + Math.random().toString(36).substr(2);
