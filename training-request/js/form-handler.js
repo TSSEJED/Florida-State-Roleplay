@@ -1,3 +1,6 @@
+// Discord webhook URL - Replace with your actual webhook URL
+const DISCORD_WEBHOOK_URL = 'YOUR_DISCORD_WEBHOOK_URL';
+
 // Generate a unique ID for the application
 function generateId() {
     return Date.now().toString(36) + Math.random().toString(36).substr(2);
@@ -24,22 +27,79 @@ function saveApplication(application) {
 }
 
 // Send notification to Discord
-function sendDiscordNotification(application) {
-    // This is a stub - in a real implementation, you would send this to your backend
-    // which would then forward it to Discord using a webhook
-    console.log('Would send to Discord:', application);
-    
-    // In a real implementation, you would make a fetch request to your backend:
-    /*
-    return fetch('/api/send-discord-notification', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-            type: 'new_application',
-            application: application
-        })
-    });
-    */
+async function sendDiscordNotification(application) {
+    if (!DISCORD_WEBHOOK_URL || DISCORD_WEBHOOK_URL === 'YOUR_DISCORD_WEBHOOK_URL') {
+        console.warn('Discord webhook URL not configured');
+        return Promise.resolve();
+    }
+
+    try {
+        // Extract Discord ID from the discordInfo field (format: username#1234 | 123456789012345678)
+        const discordIdMatch = application.discordInfo.match(/\|\s*(\d+)\s*$/);
+        const discordMention = discordIdMatch ? `<@${discordIdMatch[1].trim()}>` : application.discordInfo;
+
+        const embed = {
+            title: '📝 New Training Application',
+            color: 0x3498db,
+            fields: [
+                { name: 'Applicant', value: application.applicantName, inline: true },
+                { name: 'Discord', value: discordMention, inline: true },
+                { name: 'In-Game', value: application.ingameInfo, inline: true },
+                { name: 'Application ID', value: application.id, inline: false },
+                { name: 'Status', value: 'Pending Review', inline: true },
+                { name: 'Submitted At', value: new Date(application.submittedAt).toLocaleString(), inline: true }
+            ],
+            timestamp: new Date().toISOString()
+        };
+
+        const response = await fetch(DISCORD_WEBHOOK_URL, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+                content: `New training application from ${application.applicantName} (${discordMention})`,
+                embeds: [embed]
+            })
+        });
+
+        if (!response.ok) {
+            throw new Error(`Discord API error: ${response.status}`);
+        }
+
+        return response;
+    } catch (error) {
+        console.error('Error sending Discord notification:', error);
+        throw error;
+    }
+}
+
+// Validate form fields
+function validateForm(formData) {
+    const errors = [];
+    const values = Object.fromEntries(formData.entries());
+
+    if (!values.applicantName?.trim()) {
+        errors.push('Please enter your name');
+    }
+
+    if (!values.discordInfo?.trim()) {
+        errors.push('Please enter your Discord information (Name#1234 | ID)');
+    } else if (!/\|\s*\d+\s*$/.test(values.discordInfo)) {
+        errors.push('Please include your Discord ID in the format: username#1234 | 123456789012345678');
+    }
+
+    if (!values.ingameInfo?.trim()) {
+        errors.push('Please enter your in-game information');
+    }
+
+    // Validate all required questions
+    for (let i = 1; i <= 10; i++) {
+        const questionKey = `q${i}`;
+        if (!values[questionKey]?.trim()) {
+            errors.push(`Please answer question ${i}`);
+        }
+    }
+
+    return errors;
 }
 
 document.addEventListener('DOMContentLoaded', function() {
@@ -55,27 +115,32 @@ document.addEventListener('DOMContentLoaded', function() {
             submitBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Submitting...';
             
             try {
-                // Get and format form data
+                // Get form data
                 const formData = new FormData(form);
-                const application = formatApplication(formData);
                 
-                // Save to localStorage
+                // Validate form
+                const errors = validateForm(formData);
+                if (errors.length > 0) {
+                    throw new Error(errors.join('\n'));
+                }
+                
+                // Format and save application
+                const application = formatApplication(formData);
                 saveApplication(application);
                 
-                // Log and simulate Discord notification
-                console.log('Application submitted:', application);
+                // Send Discord notification
                 await sendDiscordNotification(application);
                 
-                // Show success message and reset form
+                // Show success and reset form
                 showNotification('Application submitted successfully!', 'success');
                 form.reset();
                 
-                // Trigger storage event to update other tabs
+                // Update other tabs
                 window.dispatchEvent(new Event('storage'));
                 
             } catch (error) {
-                console.error('Error submitting application:', error);
-                showNotification('Error submitting application. Please try again.', 'error');
+                console.error('Error:', error);
+                showNotification(error.message || 'Error submitting application', 'error');
             } finally {
                 submitBtn.disabled = false;
                 submitBtn.innerHTML = originalBtnText;
