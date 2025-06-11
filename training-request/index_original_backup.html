@@ -1,0 +1,396 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>FSRP Training Application</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <style>
+        :root {
+            --primary: #4a6fa5;
+            --primary-dark: #3a5a80;
+            --background: #f0f2f5;
+            --text: #333;
+            --white: #fff;
+            --border: #e1e4e8;
+            --shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+        }
+        
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: var(--background);
+            color: var(--text);
+            line-height: 1.6;
+            padding: 20px;
+        }
+        
+        .container {
+            max-width: 1000px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+        
+        header {
+            text-align: center;
+            margin-bottom: 30px;
+            padding: 20px 0;
+        }
+        
+        h1 {
+            color: var(--primary);
+            margin-bottom: 10px;
+            font-size: 2rem;
+        }
+        
+        .card {
+            background: var(--white);
+            border-radius: 10px;
+            box-shadow: var(--shadow);
+            padding: 25px;
+            margin-bottom: 25px;
+        }
+        
+        .form-group {
+            margin-bottom: 20px;
+        }
+        
+        label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: 500;
+            color: var(--text);
+        }
+        
+        input[type="text"],
+        input[type="email"],
+        input[type="number"],
+        select,
+        textarea {
+            width: 100%;
+            padding: 12px 15px;
+            border: 1px solid var(--border);
+            border-radius: 6px;
+            font-size: 16px;
+            transition: border-color 0.3s;
+        }
+        
+        input[type="text"]:focus,
+        input[type="email"]:focus,
+        input[type="number"]:focus,
+        select:focus,
+        textarea:focus {
+            outline: none;
+            border-color: var(--primary);
+            box-shadow: 0 0 0 3px rgba(74, 111, 165, 0.2);
+        }
+        
+        .btn {
+            background: var(--primary);
+            color: white;
+            border: none;
+            padding: 12px 25px;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 16px;
+            font-weight: 500;
+            transition: background-color 0.3s;
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+        }
+        
+        .btn:hover {
+            background: var(--primary-dark);
+        }
+        
+        .btn i {
+            font-size: 14px;
+        }
+        
+        .training-questions {
+            margin-top: 20px;
+            border-top: 1px solid var(--border);
+            padding-top: 20px;
+        }
+        
+        .training-questions h3 {
+            margin-bottom: 15px;
+            color: var(--primary);
+        }
+        
+        textarea {
+            min-height: 120px;
+            resize: vertical;
+            font-family: inherit;
+        }
+
+        /* Notification Styles */
+        .notification {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            padding: 15px 25px;
+            border-radius: 8px;
+            color: white;
+            font-weight: 500;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+            transform: translateX(150%);
+            transition: transform 0.3s ease-in-out;
+            z-index: 1000;
+            max-width: 350px;
+            backdrop-filter: blur(10px);
+        }
+
+        .notification.show {
+            transform: translateX(0);
+        }
+
+        .notification.success {
+            background: rgba(46, 213, 115, 0.9);
+            border-left: 4px solid #20bf6b;
+        }
+
+        .notification.error {
+            background: rgba(255, 71, 87, 0.9);
+            border-left: 4px solid #eb3b5a;
+        }
+
+        .notification.warning {
+            background: rgba(255, 165, 2, 0.9);
+            border-left: 4px solid #fa8231;
+        }
+
+        .notification i {
+            font-size: 20px;
+        }
+
+        /* Modal Styles */
+        .modal-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(0, 0, 0, 0.5);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            z-index: 1000;
+            opacity: 0;
+            visibility: hidden;
+            transition: all 0.3s ease;
+            backdrop-filter: blur(3px);
+        }
+
+        .modal-overlay.active {
+            opacity: 1;
+            visibility: visible;
+        }
+
+        .modal {
+            background: white;
+            padding: 25px;
+            border-radius: 12px;
+            width: 90%;
+            max-width: 500px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
+            transform: translateY(20px);
+            transition: transform 0.3s ease;
+            position: relative;
+        }
+
+        .modal-close {
+            position: absolute;
+            top: 15px;
+            right: 15px;
+            background: none;
+            border: none;
+            font-size: 20px;
+            cursor: pointer;
+            color: #666;
+        }
+
+        .modal-title {
+            margin-top: 0;
+            color: #2c3e50;
+            margin-bottom: 20px;
+        }
+
+        .modal-actions {
+            display: flex;
+            justify-content: flex-end;
+            gap: 10px;
+            margin-top: 20px;
+        }
+
+        @media (max-width: 768px) {
+            .container {
+                padding: 10px;
+            }
+            
+            .card {
+                padding: 15px;
+            }
+            
+            .modal {
+                width: 95%;
+                padding: 20px 15px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>FSRP Training Application</h1>
+            <p>Submit your training request below</p>
+        </header>
+
+        <div class="card">
+            <form id="trainingForm" class="training-form">
+                <div class="form-group">
+                    <label for="applicantName" class="required">Your Name</label>
+                    <input type="text" id="applicantName" name="applicantName" required>
+                </div>
+
+                <div class="form-group">
+                    <label for="discordInfo" class="required">Discord (Name | ID)</label>
+                    <input type="text" id="discordInfo" name="discordInfo" placeholder="Example: username#1234 | 123456789012345678" required>
+                    <small class="form-hint">Format: YourDiscordName#1234 | 123456789012345678</small>
+                </div>
+
+                <div class="form-group">
+                    <label for="ingameInfo" class="required">In-Game Name | ID</label>
+                    <input type="text" id="ingameInfo" name="ingameInfo" placeholder="Example: John_Doe | 123456" required>
+                    <small class="form-hint">Format: YourInGameName | YourInGameID</small>
+                </div>
+
+                <div class="form-section">
+                    <h2>TRAINING SKILLS</h2>
+                    
+                    <div class="form-group">
+                        <label for="q1" class="required">Have you ever trained someone before? If yes, how did it go?</label>
+                        <textarea id="q1" name="q1" required></textarea>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="q2" class="required">How would you explain the rules to a new moderator with no prior experience?</label>
+                        <textarea id="q2" name="q2" required></textarea>
+                    </div>
+
+
+                    <div class="form-group">
+                        <label for="q3" class="required">If a trainee keeps making the same mistake, how would you address it?</label>
+                        <textarea id="q3" name="q3" required></textarea>
+                    </div>
+                </div>
+
+
+                <div class="form-section">
+                    <h2>LEADERSHIP & COMMUNICATION</h2>
+                    
+                    <div class="form-group">
+                        <label for="q4" class="required">How would you handle a situation where a trainee argues with you during training?</label>
+                        <textarea id="q4" name="q4" required></textarea>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="q5" class="required">If two trainees are not getting along, how would you mediate the situation?</label>
+                        <textarea id="q5" name="q5" required></textarea>
+                    </div>
+
+
+                    <div class="form-group">
+                        <label for="q6" class="required">Can you maintain a calm and professional demeanor, even when dealing with difficult individuals?</label>
+                        <textarea id="q6" name="q6" required></textarea>
+                    </div>
+                </div>
+
+
+                <div class="form-section">
+                    <h2>TESTING & EVALUATION</h2>
+                    
+                    <div class="form-group">
+                        <label for="q7" class="required">How would you assess whether a trainee is ready to become a full moderator?</label>
+                        <textarea id="q7" name="q7" required></textarea>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="q8" class="required">Do you have any ideas for training sessions or mock scenarios to help evaluate their skills?</label>
+                        <textarea id="q8" name="q8" required></textarea>
+                    </div>
+                </div>
+
+
+                <div class="form-section">
+                    <h2>RELIABILITY</h2>
+                    
+                    <div class="form-group">
+                        <label for="q9" class="required">Are you active enough to train moderators on a regular basis?</label>
+                        <textarea id="q9" name="q9" required></textarea>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="q10" class="required">How would you ensure you're available for your trainees when they need help?</label>
+                        <textarea id="q10" name="q10" required></textarea>
+                    </div>
+                </div>
+
+                <button type="submit" class="btn">
+                    <i class="fas fa-paper-plane"></i> Submit Application
+                </button>
+            </form>
+        </div>
+
+        <!-- Notification Element -->
+        <div id="notification" class="notification">
+            <i class="fas fa-check-circle"></i>
+            <span class="notification-message"></span>
+        </div>
+    </div>
+
+    <script>
+        // Show notification function
+        function showNotification(message, type = 'success') {
+            const notification = document.getElementById('notification');
+            const icon = notification.querySelector('i');
+            const messageEl = notification.querySelector('.notification-message');
+            
+            // Set message and type
+            messageEl.textContent = message;
+            
+            // Update icon and styling based on type
+            notification.className = 'notification';
+            notification.classList.add(type);
+            
+            // Update icon
+            if (type === 'success') {
+                icon.className = 'fas fa-check-circle';
+            } else if (type === 'error') {
+                icon.className = 'fas fa-exclamation-circle';
+            } else if (type === 'warning') {
+                icon.className = 'fas fa-exclamation-triangle';
+            }
+            
+            // Show notification
+            notification.style.display = 'flex';
+            setTimeout(() => notification.classList.add('show'), 10);
+            
+            // Hide after delay
+            setTimeout(() => {
+                notification.classList.remove('show');
+                setTimeout(() => notification.style.display = 'none', 300);
+            }, 5000);
+        }
+    </script>
+</body>
+</html>
