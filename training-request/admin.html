@@ -714,40 +714,120 @@
                 return false;
             }
 
-            let message = {};
-            const timestamp = new Date().toLocaleString('en-US', { 
-                year: 'numeric', 
-                month: 'short', 
-                day: 'numeric',
-                hour: '2-digit',
-                minute: '2-digit',
-                hour12: true 
-            });
-            
-            let statusEmoji, statusText;
-            
-            switch(webhookType) {
-                case 'APPROVED':
-                    statusEmoji = '✅';
-                    statusText = 'Approved';
-                    break;
-                case 'DENIED':
-                    statusEmoji = '❌';
-                    statusText = 'Denied';
-                    break;
-                case 'RESET':
-                    statusEmoji = '🔄';
-                    statusText = 'Reset to Pending';
-                    break;
-                default:
-                    statusEmoji = 'ℹ️';
-                    statusText = 'Updated';
+            try {
+                // Get admin info from the application
+                const adminInfo = application.processedBy || {};
+                const adminName = adminInfo.name || 'System';
+                const adminDiscord = adminInfo.discord || 'N/A';
+                
+                // Extract Discord ID from the admin's Discord info (format: username#1234 | 123456789012345678)
+                const discordIdMatch = adminDiscord.match(/\|\s*(\d+)\s*$/) || [];
+                const discordId = discordIdMatch[1] ? discordIdMatch[1].trim() : '';
+                const adminMention = discordId ? `<@${discordId}>` : adminDiscord;
+                
+                // Get applicant's Discord ID if available
+                const applicantDiscord = application.discord || '';
+                const applicantDiscordIdMatch = applicantDiscord.match(/\|\s*(\d+)\s*$/) || [];
+                const applicantMention = applicantDiscordIdMatch[1] ? `<@${applicantDiscordIdMatch[1].trim()}>` : 
+                                      applicantDiscord || 'Applicant';
+                
+                // Determine status and color
+                let status, color, actionText;
+                switch(webhookType) {
+                    case 'APPROVED':
+                        status = '✅ Approved';
+                        color = 0x2ecc71; // Green
+                        actionText = 'has been approved';
+                        break;
+                    case 'DENIED':
+                        status = '❌ Denied';
+                        color = 0xe74c3c; // Red
+                        actionText = 'has been denied';
+                        break;
+                    case 'RESET':
+                        status = '🔄 Reset';
+                        color = 0xf39c12; // Orange
+                        actionText = 'has been reset to pending';
+                        break;
+                    default:
+                        status = 'ℹ️ Updated';
+                        color = 0x3498db; // Blue
+                        actionText = 'has been updated';
+                }
+                
+                // Format the timestamp
+                const timestamp = new Date().toISOString();
+                
+                // Create the embed message
+                const embed = {
+                    title: `Application ${actionText}`,
+                    color: color,
+                    fields: [
+                        {
+                            name: 'Applicant',
+                            value: application.applicantName || 'N/A',
+                            inline: true
+                        },
+                        {
+                            name: 'Discord',
+                            value: applicantDiscord || 'N/A',
+                            inline: true
+                        },
+                        {
+                            name: 'Status',
+                            value: status,
+                            inline: true
+                        },
+                        {
+                            name: 'Processed By',
+                            value: `${adminName} (${adminMention})`,
+                            inline: true
+                        }
+                    ],
+                    timestamp: timestamp,
+                    footer: {
+                        text: 'Training Application System',
+                        icon_url: 'https://i.imgur.com/wSTFvRM.png' // Replace with your logo
+                    }
+                };
+
+                // Add note field only if it exists
+                if (adminInfo.note) {
+                    embed.fields.push({
+                        name: 'Note',
+                        value: adminInfo.note,
+                        inline: false
+                    });
+                }
+                
+                // Create the payload
+                const payload = {
+                    content: `${applicantMention}, your application ${actionText} by ${adminMention}.`,
+                    embeds: [embed]
+                };
+                
+                // Send the webhook
+                const response = await fetch(webhookUrl, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify(payload)
+                });
+                
+                if (!response.ok) {
+                    const errorText = await response.text();
+                    console.error('Discord API error:', errorText);
+                    throw new Error(`HTTP error! status: ${response.status}`);
+                }
+                
+                console.log(`Successfully sent ${webhookType} notification to Discord`);
+                return true;
+                
+            } catch (error) {
+                console.error('Error in sendDiscordNotification:', error);
+                return false;
             }
-            
-            // Get admin info from the application or use current user
-            const currentUser = JSON.parse(localStorage.getItem('user') || '{}');
-            const adminInfo = application.processedBy || currentUser || {};
-            const adminMention = adminInfo.id ? `<@${adminInfo.id}>` : 'System';
             const adminName = adminInfo.username || 'Unknown Admin';
 
             if (webhookType === 'APPROVED' || webhookType === 'DENIED') {
