@@ -49,20 +49,23 @@ async function sendDiscordNotification(application) {
     }
 
     try {
-        // Extract Discord ID from the discordInfo field (format: username#1234 | 123456789012345678)
-        const discordIdMatch = application.discordInfo.match(/\|\s*(\d+)\s*$/);
-        const discordMention = discordIdMatch ? `<@${discordIdMatch[1].trim()}>` : application.discordInfo;
+        // Use the stored Discord username and user ID
+        const discordMention = application.discordUserId ? `<@${application.discordUserId}>` : 
+                              (application.discordUsername || 'Not provided');
+        const discordInfo = application.discordUsername ? 
+                           `${application.discordUsername}${application.discordUserId ? ` | ${application.discordUserId}` : ''}` : 
+                           'Not provided';
 
         const embed = {
             title: '📝 New Training Application',
             color: 0x3498db,
             fields: [
-                { name: 'Applicant', value: application.applicantName, inline: true },
-                { name: 'Discord', value: discordMention, inline: true },
-                { name: 'In-Game', value: application.ingameInfo, inline: true },
-                { name: 'Application ID', value: application.id, inline: false },
+                { name: 'Applicant', value: application.applicantName || 'Not provided', inline: true },
+                { name: 'Discord', value: discordInfo, inline: true },
+                { name: 'In-Game', value: application.ingameInfo || 'Not provided', inline: true },
+                { name: 'Application ID', value: application.id || 'Unknown', inline: false },
                 { name: 'Status', value: 'Pending Review', inline: true },
-                { name: 'Submitted At', value: new Date(application.submittedAt).toLocaleString(), inline: true }
+                { name: 'Submitted At', value: new Date(application.submittedAt || Date.now()).toLocaleString(), inline: true }
             ],
             timestamp: new Date().toISOString()
         };
@@ -71,13 +74,15 @@ async function sendDiscordNotification(application) {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({
-                content: `New training application from ${application.applicantName} (${discordMention})`,
+                content: `New training application from ${application.applicantName || 'an applicant'} ${discordMention}`,
                 embeds: [embed]
             })
         });
 
         if (!response.ok) {
-            throw new Error(`Discord API error: ${response.status}`);
+            const errorText = await response.text();
+            console.error('Discord API error response:', errorText);
+            throw new Error(`Discord API error: ${response.status} - ${errorText}`);
         }
 
         return response;
