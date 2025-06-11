@@ -843,6 +843,78 @@
             }).join('');
         }
         
+        // Show admin action modal
+        function showAdminActionModal(applicationId, actionType) {
+            const modal = document.createElement('div');
+            modal.className = 'modal';
+            modal.style.display = 'flex';
+            modal.innerHTML = `
+                <div class="modal-content" style="max-width: 500px;">
+                    <h3>${actionType === 'reset' ? 'Reset' : actionType.charAt(0).toUpperCase() + actionType.slice(1)} Application</h3>
+                    <div class="form-group">
+                        <label for="admin-name">Your Name <span class="required">*</span></label>
+                        <input type="text" id="admin-name" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="admin-discord">Your Discord ID <span class="required">*</span></label>
+                        <input type="text" id="admin-discord" placeholder="username#1234 | 123456789012345678" required>
+                        <small class="form-hint">Format: username#1234 | 123456789012345678</small>
+                    </div>
+                    <div class="form-group">
+                        <label for="admin-note">${actionType === 'reset' ? 'Reason for reset' : 'Notes'}</label>
+                        <textarea id="admin-note" rows="3" ${actionType === 'reset' || actionType === 'denied' ? 'required' : ''}></textarea>
+                    </div>
+                    <div class="modal-actions">
+                        <button type="button" class="btn btn-secondary" id="cancel-action">Cancel</button>
+                        <button type="button" class="btn ${actionType === 'approved' ? 'btn-success' : actionType === 'denied' ? 'btn-danger' : 'btn-warning'}" id="confirm-action">
+                            ${actionType === 'reset' ? 'Reset Application' : actionType === 'approved' ? 'Approve' : 'Deny'}
+                        </button>
+                    </div>
+                </div>
+            `;
+            document.body.appendChild(modal);
+
+            // Set up event listeners
+            modal.querySelector('#cancel-action').addEventListener('click', () => {
+                document.body.removeChild(modal);
+            });
+
+            modal.querySelector('#confirm-action').addEventListener('click', () => {
+                const adminName = modal.querySelector('#admin-name').value.trim();
+                const adminDiscord = modal.querySelector('#admin-discord').value.trim();
+                const adminNote = modal.querySelector('#admin-note').value.trim();
+
+                if (!adminName) {
+                    alert('Please enter your name');
+                    return;
+                }
+
+                if (!adminDiscord) {
+                    alert('Please enter your Discord information');
+                    return;
+                }
+
+                if ((actionType === 'reset' || actionType === 'denied') && !adminNote) {
+                    alert('Please provide a reason for this action');
+                    return;
+                }
+
+                // Store admin info in session for future actions
+                sessionStorage.setItem('adminInfo', JSON.stringify({
+                    name: adminName,
+                    discord: adminDiscord
+                }));
+
+                document.body.removeChild(modal);
+                
+                if (actionType === 'reset') {
+                    resetApplicationStatus(applicationId, adminName, adminDiscord, adminNote);
+                } else {
+                    updateApplicationStatus(applicationId, actionType, adminName, adminDiscord, adminNote);
+                }
+            });
+        }
+
         // Show application details in modal
         function showApplicationDetails(applicationId) {
             const applications = JSON.parse(localStorage.getItem('trainingApplications') || '[]');
@@ -1032,23 +1104,20 @@
                     </div>
                 <div class="modal-actions" style="margin-top: 1.5rem; padding-top: 1.5rem; border-top: 1px solid var(--border);">
                     ${application.status === 'pending' ? `
-                        <div style="display: flex; gap: 0.75rem;">
-                            <div class="moderator-input">
-                                <input type="text" id="moderator-name-${application.id}" placeholder="Your name" required>
+                        <div class="card-actions">
+                            <button class="btn btn-sm btn-success" onclick="showAdminActionModal('${application.id}', 'approved')">
+                                <i class="fas fa-check"></i> Approve
+                            </button>
+                            <button class="btn btn-sm btn-danger" onclick="showAdminActionModal('${application.id}', 'denied')">
+                                <i class="fas fa-times"></i> Deny
+                            </button>
+                        ` : `
+                            <div class="card-actions">
+                                <button class="btn btn-sm btn-warning" onclick="showAdminActionModal('${application.id}', 'reset')">
+                                    <i class="fas fa-undo"></i> Reset
+                                </button>
                             </div>
-                            <button class="btn btn-approve" onclick="updateApplicationStatus('${application.id}', 'approved'); closeModal();">
-                                <i class="fas fa-check"></i> Approve Application
-                            </button>
-                            <button class="btn btn-deny" onclick="updateApplicationStatus('${application.id}', 'denied'); closeModal();">
-                                <i class="fas fa-times"></i> Deny Application
-                            </button>
-                        </div>
-                    ` : `
-                        <button class="btn" onclick="resetApplicationStatus('${application.id}'); closeModal();" style="background-color: var(--gray);">
-                            <i class="fas fa-undo"></i> Reset to Pending
-                        </button>
-                    `}
-                </div>
+                        `}
                 <div class="admin-actions">
                     <h3>Admin Actions</h3>
                     <div class="form-group">
@@ -1139,15 +1208,14 @@
         }
         
         // Update application status
-        async function updateApplicationStatus(applicationId, status) {
+        async function updateApplicationStatus(applicationId, status, adminName, adminDiscord, note = '') {
             const applications = JSON.parse(localStorage.getItem('trainingApplications') || '[]');
             const applicationIndex = applications.findIndex(app => app.id === applicationId);
             
-            // Get moderator name and note from input
-            const moderatorNameInput = document.getElementById(`moderator-name-${applicationId}`);
-            const noteInput = document.getElementById(`admin-note-${applicationId}`);
-            const moderatorName = moderatorNameInput ? moderatorNameInput.value.trim() : 'Unknown Moderator';
-            const note = noteInput ? noteInput.value.trim() : '';
+            // Extract Discord ID if available (format: username#1234 | 123456789012345678)
+            const discordIdMatch = adminDiscord.match(/\|\s*(\d+)\s*$/);
+            const discordId = discordIdMatch ? discordIdMatch[1].trim() : '';
+            const discordMention = discordId ? `<@${discordId}>` : adminDiscord;
             
             if (applicationIndex !== -1) {
                 const application = applications[applicationIndex];
@@ -1205,42 +1273,62 @@
         }
         
         // Reset application status to pending
-        async function resetApplicationStatus(applicationId) {
-            if (confirm('Are you sure you want to reset this application to pending status?')) {
-                const applications = JSON.parse(localStorage.getItem('trainingApplications') || '[]');
-                const applicationIndex = applications.findIndex(app => app.id === applicationId);
+        async function resetApplicationStatus(applicationId, adminName, adminDiscord, note = '') {
+            const applications = JSON.parse(localStorage.getItem('trainingApplications') || '[]');
+            const applicationIndex = applications.findIndex(app => app.id === applicationId);
+            
+            if (applicationIndex !== -1) {
+                const application = applications[applicationIndex];
                 
-                if (applicationIndex !== -1) {
-                    const application = applications[applicationIndex];
-                    const moderatorName = prompt('Please enter your name for tracking:');
-                    
-                    if (moderatorName) {
-                        application.status = 'pending';
-                        application.updatedAt = new Date().toISOString();
-                        application.processedBy = {
-                            id: 'local-admin',
-                            username: moderatorName,
-                            discriminator: '0000',
-                            timestamp: new Date().toISOString(),
-                            action: 'reset to pending'
-                        };
-                        
-                        localStorage.setItem('trainingApplications', JSON.stringify(applications));
-                        renderApplications();
-                        
-                        // Send Discord notification for reset
-                        try {
-                            await sendDiscordNotification('RESET', application);
-                            showNotification('Application has been reset to pending status.', 'warning');
-                        } catch (error) {
-                            console.error('Error sending Discord notification:', error);
-                            showNotification('Application reset, but failed to send Discord notification.', 'error');
-                        }
-                    } else {
-                        alert('Action cancelled. Name is required for tracking.');
-                    }
+                // Extract Discord ID if available (format: username#1234 | 123456789012345678)
+                const discordIdMatch = adminDiscord.match(/\|\s*(\d+)\s*$/);
+                const discordId = discordIdMatch ? discordIdMatch[1].trim() : '';
+                const discordMention = discordId ? `<@${discordId}>` : adminDiscord;
+                
+                application.status = 'pending';
+                application.updatedAt = new Date().toISOString();
+                
+                // Store who processed this application with note
+                application.processedBy = {
+                    id: discordId || 'local-admin',
+                    username: adminName,
+                    discord: adminDiscord,
+                    timestamp: new Date().toISOString(),
+                    action: 'reset to pending',
+                    note: note
+                };
+                
+                // Initialize action history if it doesn't exist
+                if (!application.actionHistory) {
+                    application.actionHistory = [];
+                }
+                
+                // Add this action to history
+                application.actionHistory.push({
+                    action: 'reset',
+                    by: adminName,
+                    discord: adminDiscord,
+                    timestamp: new Date().toISOString(),
+                    note: note
+                });
+                
+                localStorage.setItem('trainingApplications', JSON.stringify(applications));
+                renderApplications();
+                
+                // Send Discord notification for reset
+                try {
+                    await sendDiscordNotification('RESET', application);
+                    showNotification(
+                        `Application has been reset to pending by ${adminName} (${discordMention})` +
+                        (note ? ` with note: ${note}` : ''), 
+                        'warning'
+                    );
+                } catch (error) {
+                    console.error('Error sending Discord notification:', error);
+                    showNotification('Application reset, but failed to send Discord notification.', 'error');
                 }
             }
+        
         }
         
         // Initialize the admin dashboard
