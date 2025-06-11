@@ -206,6 +206,87 @@
             opacity: 0.65;
             cursor: not-allowed;
         }
+        
+        /* Collapsible Sections */
+        .collapsible-section {
+            margin-bottom: 1rem;
+            border: 1px solid var(--border);
+            border-radius: 8px;
+            overflow: hidden;
+        }
+        
+        .section-header {
+            padding: 1rem 1.5rem;
+            background-color: #f8f9fa;
+            cursor: pointer;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            transition: background-color 0.2s;
+        }
+        
+        .section-header:hover {
+            background-color: #e9ecef;
+        }
+        
+        .section-header h3 {
+            margin: 0;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            color: var(--primary);
+        }
+        
+        .section-header i {
+            transition: transform 0.2s;
+        }
+        
+        .question-card {
+            background: white;
+            border-radius: 6px;
+            padding: 1.25rem;
+            margin-bottom: 1rem;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+            border-left: 3px solid var(--primary);
+        }
+        
+        .question {
+            font-weight: 600;
+            margin-bottom: 0.75rem;
+            color: #2c3e50;
+            display: flex;
+            gap: 0.5rem;
+            align-items: flex-start;
+        }
+        
+        .question-number {
+            background: var(--primary);
+            color: white;
+            width: 24px;
+            height: 24px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 0.8rem;
+            flex-shrink: 0;
+            margin-top: 2px;
+        }
+        
+        .answer {
+            color: #495057;
+            line-height: 1.6;
+            white-space: pre-wrap;
+        }
+        
+        .answer p {
+            margin: 0;
+        }
+        
+        .answer em {
+            color: #6c757d;
+            font-style: italic;
+        }
 
         .empty-state {
             text-align: center;
@@ -700,69 +781,111 @@
                     </div>
                     
                     <!-- Training Skills Section -->
-                    <div class="detail-group" style="grid-column: 1 / -1;">
-                        <h3 style="margin: 0 0 1rem 0; color: var(--primary);">Training Skills</h3>
-                        <div style="display: flex; flex-direction: column; gap: 1.5rem;">
-                            <div>
-                                <div class="detail-label">1. Have you ever trained someone before? If yes, how did it go?</div>
-                                <div class="detail-value" style="white-space: pre-wrap;">${application.q1 || 'Not provided'}</div>
+                    <div class="detail-group collapsible-section" style="grid-column: 1 / -1;">
+                        <div class="section-header" onclick="toggleSection(this)">
+                            <h3><i class="fas fa-graduation-cap"></i> Training Skills</h3>
+                            <i class="fas fa-chevron-down"></i>
+                        </div>
+                        <div class="section-content" style="display: none; padding: 1rem 0 0 1.5rem;">
+                            <div class="question-card">
+                                <div class="question">
+                                    <span class="question-number">1</span>
+                                    <span>Have you ever trained someone before? If yes, how did it go?</span>
+                                </div>
+                                <div class="answer">${application.q1 ? `<p>${application.q1.replace(/\n/g, '<br>')}</p>` : '<em>Not provided</em>'}</div>
                             </div>
-                            <div>
-                                <div class="detail-label">2. How would you explain the rules to a new moderator with no prior experience?</div>
-                                <div class="detail-value" style="white-space: pre-wrap;">${application.q2 || 'Not provided'}</div>
+                            <div class="question-card">
+                                <div class="question">
+                                    <span class="question-number">2</span>
+                                    <span>How would you explain the rules to a new moderator with no prior experience?</span>
+                                </div>
+                                <div class="answer">${application.q2 ? `<p>${application.q2.replace(/\n/g, '<br>')}</p>` : '<em>Not provided</em>'}</div>
                             </div>
-                            <div>
-                                <div class="detail-label">3. If a trainee keeps making the same mistake, how would you address it?</div>
-                                <div class="detail-value" style="white-space: pre-wrap;">${application.q3 || 'Not provided'}</div>
+                            <div class="question-card">
+                                <div class="question">
+                                    <span class="question-number">3</span>
+                                    <span>If a trainee keeps making the same mistake, how would you address it?</span>
+                                </div>
+                                <div class="answer">${application.q3 ? `<p>${application.q3.replace(/\n/g, '<br>')}</p>` : '<em>Not provided</em>'}</div>
                             </div>
                         </div>
                     </div>
                     
                     <!-- Leadership & Communication Section -->
-                    <div class="detail-group" style="grid-column: 1 / -1; margin-top: 1.5rem;">
-                        <h3 style="margin: 0 0 1rem 0; color: var(--primary);">Leadership & Communication</h3>
-                        <div style="display: flex; flex-direction: column; gap: 1.5rem;">
-                            <div>
-                                <div class="detail-label">4. How would you handle a situation where a trainee argues with you during training?</div>
-                                <div class="detail-value" style="white-space: pre-wrap;">${application.q4 || 'Not provided'}</div>
+                    <div class="detail-group collapsible-section" style="grid-column: 1 / -1;">
+                        <div class="section-header" onclick="toggleSection(this)">
+                            <h3><i class="fas fa-users"></i> Leadership & Communication</h3>
+                            <i class="fas fa-chevron-down"></i>
+                        </div>
+                        <div class="section-content" style="display: none; padding: 1rem 0 0 1.5rem;">
+                            <div class="question-card">
+                                <div class="question">
+                                    <span class="question-number">4</span>
+                                    <span>How would you handle a situation where a trainee argues with you during training?</span>
+                                </div>
+                                <div class="answer">${application.q4 ? `<p>${application.q4.replace(/\n/g, '<br>')}</p>` : '<em>Not provided</em>'}</div>
                             </div>
-                            <div>
-                                <div class="detail-label">5. If two trainees are not getting along, how would you mediate the situation?</div>
-                                <div class="detail-value" style="white-space: pre-wrap;">${application.q5 || 'Not provided'}</div>
+                            <div class="question-card">
+                                <div class="question">
+                                    <span class="question-number">5</span>
+                                    <span>If two trainees are not getting along, how would you mediate the situation?</span>
+                                </div>
+                                <div class="answer">${application.q5 ? `<p>${application.q5.replace(/\n/g, '<br>')}</p>` : '<em>Not provided</em>'}</div>
                             </div>
-                            <div>
-                                <div class="detail-label">6. Can you maintain a calm and professional demeanor, even when dealing with difficult individuals?</div>
-                                <div class="detail-value" style="white-space: pre-wrap;">${application.q6 || 'Not provided'}</div>
+                            <div class="question-card">
+                                <div class="question">
+                                    <span class="question-number">6</span>
+                                    <span>Can you maintain a calm and professional demeanor, even when dealing with difficult individuals?</span>
+                                </div>
+                                <div class="answer">${application.q6 ? `<p>${application.q6.replace(/\n/g, '<br>')}</p>` : '<em>Not provided</em>'}</div>
                             </div>
                         </div>
                     </div>
                     
                     <!-- Testing & Evaluation Section -->
-                    <div class="detail-group" style="grid-column: 1 / -1; margin-top: 1.5rem;">
-                        <h3 style="margin: 0 0 1rem 0; color: var(--primary);">Testing & Evaluation</h3>
-                        <div style="display: flex; flex-direction: column; gap: 1.5rem;">
-                            <div>
-                                <div class="detail-label">7. How would you assess whether a trainee is ready to become a full moderator?</div>
-                                <div class="detail-value" style="white-space: pre-wrap;">${application.q7 || 'Not provided'}</div>
+                    <div class="detail-group collapsible-section" style="grid-column: 1 / -1;">
+                        <div class="section-header" onclick="toggleSection(this)">
+                            <h3><i class="fas fa-clipboard-check"></i> Testing & Evaluation</h3>
+                            <i class="fas fa-chevron-down"></i>
+                        </div>
+                        <div class="section-content" style="display: none; padding: 1rem 0 0 1.5rem;">
+                            <div class="question-card">
+                                <div class="question">
+                                    <span class="question-number">7</span>
+                                    <span>How would you assess whether a trainee is ready to become a full moderator?</span>
+                                </div>
+                                <div class="answer">${application.q7 ? `<p>${application.q7.replace(/\n/g, '<br>')}</p>` : '<em>Not provided</em>'}</div>
                             </div>
-                            <div>
-                                <div class="detail-label">8. Do you have any ideas for training sessions or mock scenarios to help evaluate their skills?</div>
-                                <div class="detail-value" style="white-space: pre-wrap;">${application.q8 || 'Not provided'}</div>
+                            <div class="question-card">
+                                <div class="question">
+                                    <span class="question-number">8</span>
+                                    <span>Do you have any ideas for training sessions or mock scenarios to help evaluate their skills?</span>
+                                </div>
+                                <div class="answer">${application.q8 ? `<p>${application.q8.replace(/\n/g, '<br>')}</p>` : '<em>Not provided</em>'}</div>
                             </div>
                         </div>
                     </div>
                     
                     <!-- Reliability Section -->
-                    <div class="detail-group" style="grid-column: 1 / -1; margin-top: 1.5rem;">
-                        <h3 style="margin: 0 0 1rem 0; color: var(--primary);">Reliability</h3>
-                        <div style="display: flex; flex-direction: column; gap: 1.5rem;">
-                            <div>
-                                <div class="detail-label">9. Are you active enough to train moderators on a regular basis?</div>
-                                <div class="detail-value" style="white-space: pre-wrap;">${application.q9 || 'Not provided'}</div>
+                    <div class="detail-group collapsible-section" style="grid-column: 1 / -1;">
+                        <div class="section-header" onclick="toggleSection(this)">
+                            <h3><i class="fas fa-user-shield"></i> Reliability</h3>
+                            <i class="fas fa-chevron-down"></i>
+                        </div>
+                        <div class="section-content" style="display: none; padding: 1rem 0 0 1.5rem;">
+                            <div class="question-card">
+                                <div class="question">
+                                    <span class="question-number">9</span>
+                                    <span>Are you active enough to train moderators on a regular basis?</span>
+                                </div>
+                                <div class="answer">${application.q9 ? `<p>${application.q9.replace(/\n/g, '<br>')}</p>` : '<em>Not provided</em>'}</div>
                             </div>
-                            <div>
-                                <div class="detail-label">10. Would you be able to keep accurate records of who has been trained and who has not?</div>
-                                <div class="detail-value" style="white-space: pre-wrap;">${application.q10 || 'Not provided'}</div>
+                            <div class="question-card">
+                                <div class="question">
+                                    <span class="question-number">10</span>
+                                    <span>Would you be able to keep accurate records of who has been trained and who has not?</span>
+                                </div>
+                                <div class="answer">${application.q10 ? `<p>${application.q10.replace(/\n/g, '<br>')}</p>` : '<em>Not provided</em>'}</div>
                             </div>
                         </div>
                     </div>
@@ -810,6 +933,23 @@
                 closeModal();
             }
         });
+        
+        // Toggle collapsible sections
+        function toggleSection(header) {
+            const section = header.parentElement;
+            const content = section.querySelector('.section-content');
+            const icon = header.querySelector('i.fa-chevron-down, i.fa-chevron-up');
+            
+            if (content.style.display === 'none' || !content.style.display) {
+                content.style.display = 'block';
+                icon.classList.remove('fa-chevron-down');
+                icon.classList.add('fa-chevron-up');
+            } else {
+                content.style.display = 'none';
+                icon.classList.remove('fa-chevron-up');
+                icon.classList.add('fa-chevron-down');
+            }
+        }
         
         // Update application status
         async function updateApplicationStatus(applicationId, status) {
