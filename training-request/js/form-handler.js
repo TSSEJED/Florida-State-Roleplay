@@ -6,9 +6,27 @@ function generateId() {
 // Format application data for storage
 function formatApplication(formData) {
     const application = Object.fromEntries(formData.entries());
+    
+    // Extract Discord username and ID from the discordInfo field
+    // Format: username#1234 | 123456789012345678
+    let discordUsername = '';
+    let discordUserId = '';
+    
+    if (application.discordInfo) {
+        // Extract username (everything before the |)
+        const usernamePart = application.discordInfo.split('|')[0]?.trim() || '';
+        discordUsername = usernamePart;
+        
+        // Extract user ID (digits at the end after |)
+        const idMatch = application.discordInfo.match(/\|\s*(\d+)\s*$/);
+        discordUserId = idMatch ? idMatch[1].trim() : '';
+    }
+    
     return {
         id: generateId(),
         ...application,
+        discordUsername: discordUsername,
+        discordUserId: discordUserId,
         status: 'pending',
         submittedAt: new Date().toISOString(),
         updatedAt: new Date().toISOString()

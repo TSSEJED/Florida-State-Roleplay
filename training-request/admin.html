@@ -1531,69 +1531,66 @@
         
         // Update application status
         async function updateApplicationStatus(applicationId, status, adminName, adminDiscord, note = '') {
-            const applications = JSON.parse(localStorage.getItem('trainingApplications') || '[]');
-            const applicationIndex = applications.findIndex(app => app.id === applicationId);
-            
-            // Handle case where adminDiscord might be undefined
-            const discordInfo = adminDiscord || '';
-            // Extract Discord ID if available (format: username#1234 | 123456789012345678)
-            const discordIdMatch = discordInfo.match(/\|\s*(\d+)\s*$/) || [];
-            const discordId = discordIdMatch[1] ? discordIdMatch[1].trim() : '';
-            const discordMention = discordId ? `<@${discordId}>` : adminDiscord || 'Admin';
-            
-            if (applicationIndex !== -1) {
-                const application = applications[applicationIndex];
-                application.status = status;
-                application.updatedAt = new Date().toISOString();
+            try {
+                // Extract Discord ID from adminDiscord (format: username#1234 | 123456789012345678)
+                const discordIdMatch = adminDiscord.match(/\|\s*(\d+)\s*$/) || [];
+                const discordId = discordIdMatch[1] ? discordIdMatch[1].trim() : '';
+                const discordMention = discordId ? `<@${discordId}>` : adminDiscord || 'Admin';
+
+                const applications = JSON.parse(localStorage.getItem('trainingApplications') || '[]');
+                const applicationIndex = applications.findIndex(app => app.id === applicationId);
                 
-                // Store who processed this application with note
-                application.processedBy = {
-                    id: discordId || 'local-admin',
-                    username: adminName,
-                    discord: adminDiscord,
-                    timestamp: new Date().toISOString(),
-                    adminName: adminName,
-                    note: note,
-                    action: status
+                if (applicationIndex === -1) {
+                    throw new Error('Application not found');
+                }
+
+                // Get the current application
+                const currentApp = applications[applicationIndex];
+                
+                // Update application status
+                const updatedApplication = {
+                    ...currentApp,
+                    status: status,
+                    updatedAt: new Date().toISOString(),
+                    processedBy: {
+                        name: adminName,
+                        discord: adminDiscord,
+                    }
                 };
                 
                 // Initialize action history if it doesn't exist
-                if (!application.actionHistory) {
-                    application.actionHistory = [];
+                if (!updatedApplication.actionHistory) {
+                    updatedApplication.actionHistory = [];
                 }
                 
                 // Add this action to history
-                application.actionHistory.push({
+                updatedApplication.actionHistory.push({
                     action: status,
                     by: adminName,
-                    discord: adminDiscord,
+                    discordId: adminDiscord,
                     timestamp: new Date().toISOString(),
                     note: note
                 });
-                
+
+                // Save the updated applications
+                applications[applicationIndex] = updatedApplication;
                 localStorage.setItem('trainingApplications', JSON.stringify(applications));
-                
-                // Re-render the applications list
-                renderApplications();
-                
-                // Show success notification
-                showNotification(
-                    `Application has been ${status} by ${adminName} (${discordMention})` + 
-                    (note ? ` with note: ${note}` : ''), 
-                    status === 'approved' ? 'success' : status === 'denied' ? 'error' : 'warning'
-                );
-                
+
                 // Send Discord notification
-                try {
-                    const webhookType = status.toUpperCase();
-                    // For reset, we'll use the same webhook as DENIED
-                    const effectiveWebhookType = webhookType === 'RESET' ? 'DENIED' : webhookType;
-                    await sendDiscordNotification(effectiveWebhookType, application);
-                } catch (error) {
-                    console.error('Error sending Discord notification:', error);
-                    showNotification('Action completed, but failed to send Discord notification.', 'error');
-                }
+                const success = await sendDiscordNotification(status.toUpperCase(), updatedApplication);
                 
+                if (success) {
+                    showNotification(`Application ${status} successfully!`, 'success');
+                } else {
+                    showNotification('Application updated, but failed to send Discord notification', 'warning');
+                }
+
+                // Re-render applications
+                renderApplications();
+
+            } catch (error) {
+                console.error('Error updating application status:', error);
+                showNotification(`Error: ${error.message}`, 'error');
                 // Close the modal if open
                 closeModal();
             }
@@ -1601,63 +1598,75 @@
         
         // Reset application status to pending
         async function resetApplicationStatus(applicationId, adminName, adminDiscord, note = '') {
-            const applications = JSON.parse(localStorage.getItem('trainingApplications') || '[]');
-            const applicationIndex = applications.findIndex(app => app.id === applicationId);
-            
-            if (applicationIndex !== -1) {
-                const application = applications[applicationIndex];
+            try {
+                const applications = JSON.parse(localStorage.getItem('trainingApplications') || '[]');
+                const applicationIndex = applications.findIndex(app => app.id === applicationId);
                 
-                // Handle case where adminDiscord might be undefined
-                const discordInfo = adminDiscord || '';
-                // Extract Discord ID if available (format: username#1234 | 123456789012345678)
-                const discordIdMatch = discordInfo.match(/\|\s*(\d+)\s*$/) || [];
+                if (applicationIndex === -1) {
+                    throw new Error('Application not found');
+                }
+
+                // Extract Discord ID from adminDiscord (format: username#1234 | 123456789012345678)
+                const discordIdMatch = adminDiscord.match(/\|\s*(\d+)\s*$/) || [];
                 const discordId = discordIdMatch[1] ? discordIdMatch[1].trim() : '';
                 const discordMention = discordId ? `<@${discordId}>` : adminDiscord || 'Admin';
                 
-                application.status = 'pending';
-                application.updatedAt = new Date().toISOString();
+                // Get the current application
+                const currentApp = applications[applicationIndex];
                 
-                // Store who processed this application with note
-                application.processedBy = {
-                    id: discordId || 'local-admin',
-                    username: adminName,
-                    discord: adminDiscord,
-                    timestamp: new Date().toISOString(),
-                    action: 'reset to pending',
-                    note: note
+                // Update application status
+                const updatedApplication = {
+                    ...currentApp,
+                    status: 'pending',
+                    updatedAt: new Date().toISOString(),
+                    processedBy: {
+                        name: adminName,
+                        discord: adminDiscord,
+                        discordId: discordId,
+                        timestamp: new Date().toISOString(),
+                        note: note,
+                        action: 'reset to pending'
+                    }
                 };
-                
+
                 // Initialize action history if it doesn't exist
-                if (!application.actionHistory) {
-                    application.actionHistory = [];
+                if (!updatedApplication.actionHistory) {
+                    updatedApplication.actionHistory = [];
                 }
                 
                 // Add this action to history
-                application.actionHistory.push({
+                updatedApplication.actionHistory.push({
                     action: 'reset',
                     by: adminName,
-                    discord: adminDiscord,
+                    discordId: discordId,
                     timestamp: new Date().toISOString(),
                     note: note
                 });
                 
+                // Save the updated application
+                applications[applicationIndex] = updatedApplication;
                 localStorage.setItem('trainingApplications', JSON.stringify(applications));
-                renderApplications();
                 
                 // Send Discord notification for reset
-                try {
-                    await sendDiscordNotification('RESET', application);
+                const success = await sendDiscordNotification('RESET', updatedApplication);
+                
+                if (success) {
                     showNotification(
                         `Application has been reset to pending by ${adminName} (${discordMention})` +
                         (note ? ` with note: ${note}` : ''), 
-                        'warning'
+                        'info'
                     );
-                } catch (error) {
-                    console.error('Error sending Discord notification:', error);
-                    showNotification('Application reset, but failed to send Discord notification.', 'error');
+                } else {
+                    showNotification('Application reset, but failed to send Discord notification', 'warning');
                 }
+                
+                // Re-render applications
+                renderApplications();
+                
+            } catch (error) {
+                console.error('Error resetting application status:', error);
+                showNotification(`Error: ${error.message}`, 'error');
             }
-        
         }
         
         // Initialize the admin dashboard
