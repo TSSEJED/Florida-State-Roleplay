@@ -978,13 +978,18 @@
                         return (
                             (app.applicantName && app.applicantName.toLowerCase().includes(searchQuery)) ||
                             (app.discordUsername && app.discordUsername.toLowerCase().includes(searchQuery)) ||
+                            (app.discordInfo && app.discordInfo.toLowerCase().includes(searchQuery)) ||
                             (app.email && app.email.toLowerCase().includes(searchQuery))
                         );
                     });
                 }
                 
                 // Sort by timestamp (newest first)
-                filteredApplications.sort((a, b) => new Date(b.timestamp) - new Date(a.timestamp));
+                filteredApplications.sort((a, b) => {
+                    const dateA = new Date(b.timestamp || b.submittedAt || 0);
+                    const dateB = new Date(a.timestamp || a.submittedAt || 0);
+                    return dateB - dateA;
+                });
                 
                 return filteredApplications;
             } catch (error) {
@@ -1011,7 +1016,8 @@
             
             applicationsList.innerHTML = applications.map(application => {
                 const statusClass = `status-${application.status || 'pending'}`;
-                const formattedDate = new Date(application.timestamp).toLocaleString('en-US', {
+                const dateToUse = application.timestamp || application.submittedAt || Date.now();
+                const formattedDate = new Date(dateToUse).toLocaleString('en-US', {
                     year: 'numeric',
                     month: 'short',
                     day: 'numeric',
