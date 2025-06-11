@@ -1,3 +1,23 @@
+// Import GitHub service
+import { githubService } from './github-service.js';
+
+// Track if GitHub is available
+let gitHubAvailable = false;
+
+// Initialize GitHub service if token is available
+document.addEventListener('DOMContentLoaded', async () => {
+    try {
+        const token = localStorage.getItem('github_token');
+        if (token) {
+            await githubService.init(token);
+            gitHubAvailable = true;
+            console.log('GitHub service initialized');
+        }
+    } catch (error) {
+        console.warn('GitHub service not available, falling back to localStorage', error);
+    }
+});
+
 // Generate a unique ID for the application
 function generateId() {
     return Date.now().toString(36) + Math.random().toString(36).substr(2);
@@ -33,11 +53,30 @@ function formatApplication(formData) {
     };
 }
 
-// Save application to localStorage
-function saveApplication(application) {
+// Save application to GitHub or localStorage
+async function saveApplication(application) {
+    // Always save to localStorage as a fallback
     const applications = JSON.parse(localStorage.getItem('trainingApplications') || '[]');
-    applications.push(application);
+    const existingIndex = applications.findIndex(app => app.id === application.id);
+    
+    if (existingIndex >= 0) {
+        applications[existingIndex] = application; // Update existing
+    } else {
+        applications.push(application); // Add new
+    }
     localStorage.setItem('trainingApplications', JSON.stringify(applications));
+    
+    // Try to save to GitHub if available
+    if (gitHubAvailable) {
+        try {
+            await githubService.saveApplication(application);
+            console.log('Application saved to GitHub');
+        } catch (error) {
+            console.error('Failed to save application to GitHub:', error);
+            // Continue with localStorage as fallback
+        }
+    }
+    
     return application;
 }
 

@@ -954,10 +954,19 @@
             }, 5000);
         }
         
-        // Load applications from localStorage
-        function loadApplications() {
+        // Load applications from GitHub or fallback to localStorage
+        async function loadApplications() {
             try {
-                const applications = JSON.parse(localStorage.getItem('trainingApplications') || '[]');
+                let applications = [];
+                
+                // Try to load from GitHub first
+                try {
+                    applications = await githubService.getApplications();
+                } catch (error) {
+                    console.warn('Failed to load from GitHub, falling back to localStorage', error);
+                    applications = JSON.parse(localStorage.getItem('trainingApplications') || '[]');
+                }
+                
                 const statusFilterEl = document.getElementById('statusFilter');
                 const searchInputEl = document.getElementById('searchInput');
                 
@@ -999,8 +1008,8 @@
         }
         
         // Render applications list with compact cards
-        function renderApplications() {
-            const applications = loadApplications();
+        async function renderApplications() {
+            const applications = await loadApplications();
             const applicationsList = document.getElementById('applicationsList');
             
             if (applications.length === 0) {
@@ -1676,25 +1685,7 @@
         }
         
         // Initialize the admin dashboard
-        document.addEventListener('DOMContentLoaded', () => {
-            // Render applications on page load
-            renderApplications();
-            
-            // Add event listeners for filters
-            document.getElementById('statusFilter').addEventListener('change', renderApplications);
-            document.getElementById('searchInput').addEventListener('input', renderApplications);
-            
-            // Close modal button
-            document.querySelector('.close-modal').addEventListener('click', closeModal);
-            
-            // Check if there are any applications
-            const applications = JSON.parse(localStorage.getItem('trainingApplications') || '[]');
-            if (applications.length === 0) {
-                console.log('No applications found in localStorage');
-            } else {
-                console.log(`Loaded ${applications.length} applications from localStorage`);
-            }
-        });
+        // Moved to module script at the bottom of the file
     </script>
 </body>
 </html>

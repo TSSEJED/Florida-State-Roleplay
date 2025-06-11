@@ -361,6 +361,24 @@
     <!-- Include configuration -->
     <script src="config.js"></script>
     <!-- Include the form handler script -->
-    <script src="js/form-handler.js"></script>
+    <script type="module" src="js/github-service.js"></script>
+    <script type="module" src="js/form-handler.js"></script>
+    <script type="module">
+        // Initialize GitHub service
+        document.addEventListener('DOMContentLoaded', async () => {
+            try {
+                // This will be replaced with the actual token from config
+                const token = localStorage.getItem('github_token');
+                
+                if (token) {
+                    await githubService.init(token);
+                    console.log('GitHub service initialized');
+                }
+            } catch (error) {
+                console.error('Failed to initialize GitHub service:', error);
+                // We'll still allow form submission with localStorage fallback
+            }
+        });
+    </script>
 </body>
 </html>
