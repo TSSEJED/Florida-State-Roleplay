@@ -226,22 +226,54 @@
         }
         
         .form-group {
-            margin-bottom: 15px;
+            margin-bottom: 1.5rem;
         }
-        
+
         .form-group label {
             display: block;
-            margin-bottom: 5px;
+            margin-bottom: 0.5rem;
             font-weight: 500;
             color: #495057;
         }
         
-        .form-control {
+        .form-group input,
+        .form-group select,
+        .form-group textarea {
             width: 100%;
-            padding: 8px 12px;
-            border: 1px solid #ced4da;
-            border-radius: 4px;
-            font-size: 0.9rem;
+            padding: 0.75rem 1rem;
+            border: 1px solid var(--border);
+            border-radius: 6px;
+            font-size: 0.95rem;
+            transition: border-color 0.2s, box-shadow 0.2s;
+            font-family: inherit;
+            background-color: #fff;
+        }
+
+        .form-group input:focus,
+        .form-group select:focus,
+        .form-group textarea:focus {
+            outline: none;
+            border-color: var(--primary);
+            box-shadow: 0 0 0 3px rgba(52, 152, 219, 0.15);
+        }
+        
+        .form-group textarea {
+            min-height: 100px;
+            resize: vertical;
+        }
+        
+        .form-hint {
+            display: block;
+            margin-top: 0.5rem;
+            font-size: 0.8rem;
+            color: var(--gray);
+            line-height: 1.4;
+        }
+        
+        .required {
+            color: #e74c3c;
+            font-weight: bold;
+            margin-left: 2px;
         }
         
         textarea.form-control {
@@ -451,29 +483,126 @@
         
         /* Modal Styles */
         .modal {
-            display: none;
             position: fixed;
             top: 0;
             left: 0;
             width: 100%;
             height: 100%;
-            background-color: rgba(0, 0, 0, 0.5);
+            background-color: rgba(0, 0, 0, 0.6);
+            backdrop-filter: blur(4px);
             z-index: 1000;
             justify-content: center;
             align-items: center;
+            padding: 20px;
+            box-sizing: border-box;
+            opacity: 0;
+            transition: opacity 0.15s ease-in-out;
         }
-        
+
+        .modal.show {
+            display: flex;
+            opacity: 1;
+        }
+
         .modal-content {
-            background: white;
+            background: var(--white);
             padding: 2rem;
-            border-radius: 8px;
-            max-width: 800px;
-            width: 90%;
+            border-radius: 12px;
+            width: 100%;
+            max-width: 500px;
             max-height: 90vh;
             overflow-y: auto;
-            position: relative;
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.2);
+            border: 1px solid var(--border);
+            transform: translateY(20px);
+            opacity: 0;
+            transition: all 0.2s ease-out;
         }
-        
+
+        .modal.show .modal-content {
+            transform: translateY(0);
+            opacity: 1;
+        }
+
+        .modal-header {
+            margin-bottom: 1.5rem;
+            padding-bottom: 1rem;
+            border-bottom: 1px solid var(--border);
+        }
+
+        .modal-header h3 {
+            margin: 0 0 0.5rem 0;
+            color: var(--text-dark);
+            font-size: 1.5rem;
+        }
+
+        .modal-subtitle {
+            margin: 0;
+            color: var(--gray);
+            font-size: 0.9rem;
+        }
+
+        .modal-actions {
+            display: flex;
+            justify-content: flex-end;
+            gap: 0.75rem;
+            margin-top: 2rem;
+            padding-top: 1.25rem;
+            border-top: 1px solid var(--border);
+        }
+
+        .modal-actions .btn {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.5rem;
+            padding: 0.65rem 1.25rem;
+            border-radius: 6px;
+            font-weight: 500;
+            transition: all 0.2s ease;
+            border: none;
+            cursor: pointer;
+        }
+
+        .modal-actions .btn i {
+            font-size: 0.9em;
+        }
+
+        .modal-actions .btn-secondary {
+            background-color: #f1f3f5;
+            color: #495057;
+        }
+
+        .modal-actions .btn-secondary:hover {
+            background-color: #e9ecef;
+        }
+
+        .modal-actions .btn-success {
+            background-color: #2ecc71;
+            color: white;
+        }
+
+        .modal-actions .btn-success:hover {
+            background-color: #27ae60;
+        }
+
+        .modal-actions .btn-danger {
+            background-color: #e74c3c;
+            color: white;
+        }
+
+        .modal-actions .btn-danger:hover {
+            background-color: #c0392b;
+        }
+
+        .modal-actions .btn-warning {
+            background-color: #f39c12;
+            color: white;
+        }
+
+        .modal-actions .btn-warning:hover {
+            background-color: #d35400;
+        }
+
         .close-modal {
             position: absolute;
             top: 1rem;
@@ -824,11 +953,16 @@
                                     <i class="fas fa-eye"></i> View
                                 </button>
                                 ${application.status === 'pending' ? `
-                                    <button class="btn btn-approve" onclick="event.stopPropagation(); updateApplicationStatus('${application.id}', 'approved')">
+                                    <button class="btn btn-approve" onclick="event.stopPropagation(); showAdminActionModal('${application.id}', 'approved')">
                                         <i class="fas fa-check"></i> Approve
                                     </button>
-                                    <button class="btn btn-deny" onclick="event.stopPropagation(); updateApplicationStatus('${application.id}', 'denied')">
+                                    <button class="btn btn-deny" onclick="event.stopPropagation(); showAdminActionModal('${application.id}', 'denied')">
                                         <i class="fas fa-times"></i> Deny
+                                    </button>
+                                ` : ''}
+                                ${application.status !== 'pending' ? `
+                                    <button class="btn btn-warning" onclick="event.stopPropagation(); showAdminActionModal('${application.id}', 'reset')">
+                                        <i class="fas fa-undo"></i> Reset
                                     </button>
                                 ` : ''}
                             </div>
@@ -846,28 +980,62 @@
         
         // Show admin action modal
         function showAdminActionModal(applicationId, actionType) {
+            // Check for existing admin info in session
+            let adminInfo = null;
+            try {
+                const savedInfo = sessionStorage.getItem('adminInfo');
+                if (savedInfo) {
+                    adminInfo = JSON.parse(savedInfo);
+                }
+            } catch (e) {
+                console.error('Error parsing admin info from session:', e);
+            }
+
             const modal = document.createElement('div');
-            modal.className = 'modal';
-            modal.style.display = 'flex';
+            modal.className = 'modal show';
+            // Add a small delay to ensure the modal is in the DOM before showing animation
+            setTimeout(() => {
+                modal.classList.add('show');
+                modal.querySelector('.modal-content').style.opacity = '1';
+                modal.querySelector('.modal-content').style.transform = 'translateY(0)';
+            }, 10);
+
             modal.innerHTML = `
                 <div class="modal-content" style="max-width: 500px;">
-                    <h3>${actionType === 'reset' ? 'Reset' : actionType.charAt(0).toUpperCase() + actionType.slice(1)} Application</h3>
+                    <div class="modal-header">
+                        <h3>${actionType === 'reset' ? 'Reset' : actionType.charAt(0).toUpperCase() + actionType.slice(1)} Application</h3>
+                        <p class="modal-subtitle">Please provide your admin details to continue</p>
+                    </div>
                     <div class="form-group">
                         <label for="admin-name">Your Name <span class="required">*</span></label>
-                        <input type="text" id="admin-name" required>
+                        <input type="text" id="admin-name" value="${adminInfo?.name || ''}" required>
                     </div>
                     <div class="form-group">
                         <label for="admin-discord">Your Discord ID <span class="required">*</span></label>
-                        <input type="text" id="admin-discord" placeholder="username#1234 | 123456789012345678" required>
+                        <input type="text" id="admin-discord" 
+                            placeholder="username#1234 | 123456789012345678" 
+                            value="${adminInfo?.discord || ''}" 
+                            required>
                         <small class="form-hint">Format: username#1234 | 123456789012345678</small>
                     </div>
                     <div class="form-group">
-                        <label for="admin-note">${actionType === 'reset' ? 'Reason for reset' : 'Notes'}</label>
-                        <textarea id="admin-note" rows="3" ${actionType === 'reset' || actionType === 'denied' ? 'required' : ''}></textarea>
+                        <label for="admin-note">
+                            ${actionType === 'reset' ? 'Reason for reset' : 
+                              actionType === 'denied' ? 'Reason for denial' : 'Notes (optional)'}
+                            ${(actionType === 'reset' || actionType === 'denied') ? '<span class="required">*</span>' : ''}
+                        </label>
+                        <textarea id="admin-note" rows="3" 
+                            placeholder="${actionType === 'reset' ? 'Please provide a reason for resetting this application...' : 
+                                        actionType === 'denied' ? 'Please provide a reason for denying this application...' : 
+                                        'Additional notes (optional)...'}"
+                            ${actionType === 'reset' || actionType === 'denied' ? 'required' : ''}></textarea>
                     </div>
                     <div class="modal-actions">
-                        <button type="button" class="btn btn-secondary" id="cancel-action">Cancel</button>
+                        <button type="button" class="btn btn-secondary" id="cancel-action">
+                            <i class="fas fa-times"></i> Cancel
+                        </button>
                         <button type="button" class="btn ${actionType === 'approved' ? 'btn-success' : actionType === 'denied' ? 'btn-danger' : 'btn-warning'}" id="confirm-action">
+                            <i class="fas fa-${actionType === 'reset' ? 'undo' : actionType === 'approved' ? 'check' : 'times'}"></i>
                             ${actionType === 'reset' ? 'Reset Application' : actionType === 'approved' ? 'Approve' : 'Deny'}
                         </button>
                     </div>
@@ -875,9 +1043,61 @@
             `;
             document.body.appendChild(modal);
 
+            // Focus on the first input field
+            const firstInput = modal.querySelector('input, textarea, select');
+            if (firstInput) firstInput.focus();
+
+            // Close modal when clicking outside the content
+            const handleOutsideClick = (e) => {
+                if (e.target === modal) {
+                    closeModal();
+                }
+            };
+            
+            // Close modal with Escape key
+            const handleEscapeKey = (e) => {
+                if (e.key === 'Escape') {
+                    closeModal();
+                }
+            };
+            
+            const closeModal = () => {
+                // Fade out animation
+                modal.style.opacity = '0';
+                const content = modal.querySelector('.modal-content');
+                if (content) {
+                    content.style.opacity = '0';
+                    content.style.transform = 'translateY(20px)';
+                }
+                
+                // Remove event listeners
+                modal.removeEventListener('click', handleOutsideClick);
+                document.removeEventListener('keydown', handleEscapeKey);
+                
+                // Remove from DOM after animation completes
+                setTimeout(() => {
+                    if (modal.parentNode) {
+                        document.body.removeChild(modal);
+                    }
+                }, 200);
+            };
+            
             // Set up event listeners
-            modal.querySelector('#cancel-action').addEventListener('click', () => {
-                document.body.removeChild(modal);
+            modal.addEventListener('click', handleOutsideClick);
+            document.addEventListener('keydown', handleEscapeKey);
+            
+            modal.querySelector('#cancel-action').addEventListener('click', closeModal);
+
+            // Handle Enter key in input fields
+            const handleKeyDown = (e) => {
+                if (e.key === 'Enter' && e.target.tagName === 'INPUT' && e.target.type !== 'textarea') {
+                    e.preventDefault();
+                    modal.querySelector('#confirm-action').click();
+                }
+            };
+            
+            modal.querySelectorAll('input, textarea').forEach(input => {
+                input.addEventListener('keydown', handleKeyDown);
             });
 
             modal.querySelector('#confirm-action').addEventListener('click', () => {
@@ -885,29 +1105,49 @@
                 const adminDiscord = modal.querySelector('#admin-discord').value.trim();
                 const adminNote = modal.querySelector('#admin-note').value.trim();
 
+                // Validation
                 if (!adminName) {
-                    alert('Please enter your name');
+                    showNotification('Please enter your name', 'error');
+                    modal.querySelector('#admin-name').focus();
                     return;
                 }
 
                 if (!adminDiscord) {
-                    alert('Please enter your Discord information');
+                    showNotification('Please enter your Discord information', 'error');
+                    modal.querySelector('#admin-discord').focus();
+                    return;
+                }
+
+                // Validate Discord format (loose validation - just check for | and numbers after)
+                if (!/\|\s*\d+\s*$/.test(adminDiscord)) {
+                    showNotification('Please use the format: username#1234 | 123456789012345678', 'error');
+                    modal.querySelector('#admin-discord').focus();
                     return;
                 }
 
                 if ((actionType === 'reset' || actionType === 'denied') && !adminNote) {
-                    alert('Please provide a reason for this action');
+                    showNotification(
+                        `Please provide a reason for ${actionType === 'reset' ? 'resetting' : 'denying'} this application`,
+                        'error'
+                    );
+                    modal.querySelector('#admin-note').focus();
                     return;
                 }
 
                 // Store admin info in session for future actions
-                sessionStorage.setItem('adminInfo', JSON.stringify({
+                const adminInfo = {
                     name: adminName,
-                    discord: adminDiscord
-                }));
+                    discord: adminDiscord,
+                    lastAction: new Date().toISOString()
+                };
+                sessionStorage.setItem('adminInfo', JSON.stringify(adminInfo));
 
                 document.body.removeChild(modal);
                 
+                // Show loading state
+                showNotification(`Processing ${actionType} action...`, 'info');
+                
+                // Execute the action
                 if (actionType === 'reset') {
                     resetApplicationStatus(applicationId, adminName, adminDiscord, adminNote);
                 } else {
