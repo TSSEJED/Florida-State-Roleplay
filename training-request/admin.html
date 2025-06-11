@@ -703,7 +703,7 @@
             SUBMISSIONS: 'https://discord.com/api/webhooks/1380881442632110171/NvTtSHBGI0pRcMfw2NPGttzWOByl4wOv9XYib022fPtTRZlHggxF4s64LNpM2eSpPwhI', // #application-submissions
             APPROVED: 'https://discord.com/api/webhooks/1380884180472430656/Av6NCISSqoJioZoVSN5Vb7ldtHf1ztvtOA1MkiroLzShKxs4FlawWGgPyIAaWdfIH-X4',   // #application-approved
             DENIED: 'https://discord.com/api/webhooks/1380884370130206800/1LhQyXIFgQReyxzT-fpZJgyHsjf5VG4hZ6C486VmYqJoLnLN0dDsRrYc2iJQQBtW9JB2',   // #application-denied
-            RESET: 'https://discord.com/api/webhooks/1380884370130206800/1LhQyXIFgQReyxzT-fpZJgyHsjf5VG4hZ6C486VmYqJoLnLN0dDsRrYc2iJQQBtW9JB2'     // Same as DENIED for reset notifications
+            RESET: 'https://discord.com/api/webhooks/1380881442632110171/NvTtSHBGI0pRcMfw2NPGttzWOByl4wOv9XYib022fPtTRZlHggxF4s64LNpM2eSpPwhI'     // Same as SUBMISSIONS for reset notifications
         };
 
         // Send notification to Discord
@@ -726,10 +726,11 @@
                 const adminMention = discordId ? `<@${discordId}>` : adminDiscord;
                 
                 // Get applicant's Discord ID if available
-                const applicantDiscord = application.discord || '';
-                const applicantDiscordIdMatch = applicantDiscord.match(/\|\s*(\d+)\s*$/) || [];
-                const applicantMention = applicantDiscordIdMatch[1] ? `<@${applicantDiscordIdMatch[1].trim()}>` : 
-                                      applicantDiscord || 'Applicant';
+                const applicantDiscord = application.discordUsername || '';
+                const applicantDiscordId = application.discordUserId || '';
+                const applicantMention = applicantDiscordId ? 
+                    `<@${applicantDiscordId}>` : 
+                    (applicantDiscord || 'Applicant');
                 
                 // Determine status and color
                 let status, color, actionText;
@@ -770,7 +771,7 @@
                         },
                         {
                             name: 'Discord',
-                            value: applicantDiscord || 'N/A',
+                            value: (applicantDiscord || 'N/A') + (applicantDiscordId ? ` (${applicantDiscordId})` : ''),
                             inline: true
                         },
                         {
@@ -787,7 +788,7 @@
                     timestamp: timestamp,
                     footer: {
                         text: 'Training Application System',
-                        icon_url: 'https://i.imgur.com/wSTFvRM.png' // Replace with your logo
+                        icon_url: 'https://fsrp-staff.pages.dev/logo.png' // Replace with your logo
                     }
                 };
 
