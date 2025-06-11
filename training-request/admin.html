@@ -573,7 +573,8 @@
         const DISCORD_WEBHOOKS = {
             SUBMISSIONS: 'https://discord.com/api/webhooks/1380881442632110171/NvTtSHBGI0pRcMfw2NPGttzWOByl4wOv9XYib022fPtTRZlHggxF4s64LNpM2eSpPwhI', // #application-submissions
             APPROVED: 'https://discord.com/api/webhooks/1380884180472430656/Av6NCISSqoJioZoVSN5Vb7ldtHf1ztvtOA1MkiroLzShKxs4FlawWGgPyIAaWdfIH-X4',   // #application-approved
-            DENIED: 'https://discord.com/api/webhooks/1380884370130206800/1LhQyXIFgQReyxzT-fpZJgyHsjf5VG4hZ6C486VmYqJoLnLN0dDsRrYc2iJQQBtW9JB2'    // #application-denied
+            DENIED: 'https://discord.com/api/webhooks/1380884370130206800/1LhQyXIFgQReyxzT-fpZJgyHsjf5VG4hZ6C486VmYqJoLnLN0dDsRrYc2iJQQBtW9JB2',   // #application-denied
+            RESET: 'https://discord.com/api/webhooks/1380884370130206800/1LhQyXIFgQReyxzT-fpZJgyHsjf5VG4hZ6C486VmYqJoLnLN0dDsRrYc2iJQQBtW9JB2'     // Same as DENIED for reset notifications
         };
 
         // Send notification to Discord
@@ -1212,10 +1213,12 @@
             const applications = JSON.parse(localStorage.getItem('trainingApplications') || '[]');
             const applicationIndex = applications.findIndex(app => app.id === applicationId);
             
+            // Handle case where adminDiscord might be undefined
+            const discordInfo = adminDiscord || '';
             // Extract Discord ID if available (format: username#1234 | 123456789012345678)
-            const discordIdMatch = adminDiscord.match(/\|\s*(\d+)\s*$/);
-            const discordId = discordIdMatch ? discordIdMatch[1].trim() : '';
-            const discordMention = discordId ? `<@${discordId}>` : adminDiscord;
+            const discordIdMatch = discordInfo.match(/\|\s*(\d+)\s*$/) || [];
+            const discordId = discordIdMatch[1] ? discordIdMatch[1].trim() : '';
+            const discordMention = discordId ? `<@${discordId}>` : adminDiscord || 'Admin';
             
             if (applicationIndex !== -1) {
                 const application = applications[applicationIndex];
@@ -1224,11 +1227,11 @@
                 
                 // Store who processed this application with note
                 application.processedBy = {
-                    id: 'local-admin',
-                    username: moderatorName,
-                    discriminator: '0000',
+                    id: discordId || 'local-admin',
+                    username: adminName,
+                    discord: adminDiscord,
                     timestamp: new Date().toISOString(),
-                    adminName: moderatorName,
+                    adminName: adminName,
                     note: note,
                     action: status
                 };
@@ -1241,7 +1244,8 @@
                 // Add this action to history
                 application.actionHistory.push({
                     action: status,
-                    by: moderatorName,
+                    by: adminName,
+                    discord: adminDiscord,
                     timestamp: new Date().toISOString(),
                     note: note
                 });
@@ -1253,15 +1257,17 @@
                 
                 // Show success notification
                 showNotification(
-                    `Application has been ${status} by ${moderatorName}` + 
+                    `Application has been ${status} by ${adminName} (${discordMention})` + 
                     (note ? ` with note: ${note}` : ''), 
-                    status === 'approved' ? 'success' : 'error'
+                    status === 'approved' ? 'success' : status === 'denied' ? 'error' : 'warning'
                 );
                 
                 // Send Discord notification
                 try {
                     const webhookType = status.toUpperCase();
-                    await sendDiscordNotification(webhookType, application);
+                    // For reset, we'll use the same webhook as DENIED
+                    const effectiveWebhookType = webhookType === 'RESET' ? 'DENIED' : webhookType;
+                    await sendDiscordNotification(effectiveWebhookType, application);
                 } catch (error) {
                     console.error('Error sending Discord notification:', error);
                     showNotification('Action completed, but failed to send Discord notification.', 'error');
@@ -1280,10 +1286,12 @@
             if (applicationIndex !== -1) {
                 const application = applications[applicationIndex];
                 
+                // Handle case where adminDiscord might be undefined
+                const discordInfo = adminDiscord || '';
                 // Extract Discord ID if available (format: username#1234 | 123456789012345678)
-                const discordIdMatch = adminDiscord.match(/\|\s*(\d+)\s*$/);
-                const discordId = discordIdMatch ? discordIdMatch[1].trim() : '';
-                const discordMention = discordId ? `<@${discordId}>` : adminDiscord;
+                const discordIdMatch = discordInfo.match(/\|\s*(\d+)\s*$/) || [];
+                const discordId = discordIdMatch[1] ? discordIdMatch[1].trim() : '';
+                const discordMention = discordId ? `<@${discordId}>` : adminDiscord || 'Admin';
                 
                 application.status = 'pending';
                 application.updatedAt = new Date().toISOString();
